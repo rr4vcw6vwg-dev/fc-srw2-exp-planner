@@ -7,6 +7,8 @@ echo "GitHub Pages push helper"
 echo ""
 echo "Before running this script, create an empty GitHub repository."
 echo "Do not add README, .gitignore, or license in GitHub UI."
+echo "If Git asks for password, paste a GitHub Personal Access Token instead of your account password."
+echo "The token only needs Contents read/write permission for this repository."
 echo ""
 read "?Paste repository HTTPS URL, for example https://github.com/YOUR_NAME/fc-srw2-exp-planner.git: " REMOTE_URL
 
