@@ -1963,9 +1963,12 @@
     }
 
     function createUnitFromCurrentForm() {
+      const currentUnit = getSelectedUnit();
+      const typedName = refs.unitNameInput.value.trim();
+      const defaultName = `机体 ${unitPlanState.units.length + 1}`;
       const unit = {
         id: `unit-${Date.now()}`,
-        name: refs.unitNameInput.value.trim() || `机体 ${unitPlanState.units.length + 1}`,
+        name: typedName && typedName !== currentUnit.name ? typedName : defaultName,
         currentLevel: parseInt(refs.currentLevel.value, 10) || defaultFormState.currentLevel,
         remainingToNext: parseInt(refs.remainingToNext.value, 10) || defaultFormState.remainingToNext,
         targetLevel: parseInt(refs.targetLevel.value, 10) || defaultFormState.targetLevel,
