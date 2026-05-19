@@ -1,0 +1,3684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#08111e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="机战经验规划" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./pwa-icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./pwa-icon.svg" />
+  <title>FC 第二次机器人大战经验路线规划器</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: rgba(10, 16, 28, 0.9);
+      --panel-strong: rgba(13, 20, 34, 0.96);
+      --card: rgba(19, 30, 49, 0.88);
+      --border: rgba(100, 189, 255, 0.28);
+      --border-strong: rgba(255, 193, 94, 0.55);
+      --text: #f2efe1;
+      --muted: #97a7bc;
+      --accent: #7ad3ff;
+      --accent-strong: #ffe08a;
+      --danger: #ff8d8d;
+      --success: #94ffc4;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --radius: 20px;
+      --grid-gap: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next Condensed", "Trebuchet MS", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(48, 109, 199, 0.35), transparent 26%),
+        radial-gradient(circle at right 20%, rgba(255, 172, 68, 0.18), transparent 26%),
+        linear-gradient(150deg, #08111e 0%, #0e1421 42%, #05080f 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.04) 0,
+          rgba(255, 255, 255, 0.04) 1px,
+          transparent 1px,
+          transparent 5px
+        );
+      opacity: 0.16;
+      mix-blend-mode: screen;
+    }
+
+    .shell {
+      width: min(1440px, calc(100vw - 28px));
+      margin: 24px auto 40px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(11, 18, 29, 0.95), rgba(6, 10, 18, 0.96));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border-radius: 24px;
+      background:
+        linear-gradient(125deg, rgba(122, 211, 255, 0.12), transparent 42%),
+        linear-gradient(135deg, rgba(255, 208, 122, 0.14), rgba(255, 208, 122, 0.02)),
+        rgba(12, 20, 33, 0.94);
+      border: 1px solid rgba(122, 211, 255, 0.22);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      right: -72px;
+      top: -96px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(122, 211, 255, 0.2), transparent 68%);
+      filter: blur(4px);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent-strong);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 52px);
+      line-height: 1.04;
+      letter-spacing: 0.03em;
+      font-weight: 800;
+      max-width: 13ch;
+    }
+
+    .hero p {
+      position: relative;
+      z-index: 1;
+      max-width: 72ch;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .hero-metrics {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text);
+      background: rgba(7, 12, 22, 0.72);
+      border: 1px solid rgba(122, 211, 255, 0.22);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: var(--grid-gap);
+      margin-top: 18px;
+    }
+
+    .column {
+      display: grid;
+      gap: var(--grid-gap);
+      align-content: start;
+    }
+
+    .panel {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      padding: 20px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .result-panel {
+      position: sticky;
+      top: 18px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+    }
+
+    .panel-note {
+      margin: 10px 0 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .quick-panel {
+      border-color: rgba(255, 213, 130, 0.38);
+      background:
+        linear-gradient(140deg, rgba(255, 210, 123, 0.12), transparent 34%),
+        linear-gradient(180deg, var(--panel), var(--panel-strong));
+    }
+
+    .quick-section {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(6, 12, 22, 0.62);
+      border: 1px solid rgba(122, 211, 255, 0.14);
+    }
+
+    .quick-section-title {
+      margin: 0;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .action-strip {
+      align-items: center;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 210, 123, 0.08);
+      border: 1px solid rgba(255, 210, 123, 0.18);
+    }
+
+    .action-strip .warn {
+      min-width: 180px;
+      font-size: 15px;
+    }
+
+    details.panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    details.panel[open] {
+      border-color: rgba(122, 211, 255, 0.34);
+    }
+
+    .collapse-summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .collapse-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .collapse-title {
+      display: grid;
+      gap: 5px;
+    }
+
+    .collapse-title strong {
+      color: var(--accent-strong);
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .collapse-title span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .collapse-summary::after {
+      content: "展开";
+      flex: 0 0 auto;
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(19, 33, 56, 0.78);
+      border: 1px solid rgba(122, 211, 255, 0.2);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    details[open] > .collapse-summary::after {
+      content: "收起";
+      color: #1d1200;
+      background: linear-gradient(135deg, #ffd27b, #fff0b8);
+      border-color: transparent;
+    }
+
+    .panel-inner {
+      padding: 0 20px 20px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-wide {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      touch-action: manipulation;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(122, 211, 255, 0.18);
+      border-radius: 14px;
+      padding: 12px 14px;
+      min-height: 46px;
+      color: var(--text);
+      background: rgba(4, 8, 15, 0.72);
+      outline: none;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(255, 213, 130, 0.65);
+      box-shadow: 0 0 0 3px rgba(255, 213, 130, 0.12);
+      transform: translateY(-1px);
+    }
+
+    textarea {
+      min-height: 170px;
+      resize: vertical;
+      line-height: 1.55;
+      font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      min-height: 44px;
+      cursor: pointer;
+      color: #08111e;
+      background: linear-gradient(135deg, var(--accent), #b4eeff);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+      box-shadow: 0 10px 24px rgba(122, 211, 255, 0.16);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    button.secondary {
+      color: var(--text);
+      background: rgba(19, 33, 56, 0.78);
+      border: 1px solid rgba(122, 211, 255, 0.2);
+      box-shadow: none;
+    }
+
+    button.warn {
+      color: #1d1200;
+      background: linear-gradient(135deg, #ffd27b, #fff0b8);
+      box-shadow: 0 10px 24px rgba(255, 210, 123, 0.16);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(122, 211, 255, 0.12);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    td input {
+      padding: 10px 12px;
+      min-width: 0;
+    }
+
+    .mini-button {
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1;
+      min-width: 44px;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .checkbox input {
+      width: auto;
+      margin: 0;
+      transform: translateY(1px);
+    }
+
+    .status {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      border: 1px solid rgba(122, 211, 255, 0.18);
+      background: rgba(5, 9, 16, 0.64);
+    }
+
+    .status.success {
+      border-color: rgba(148, 255, 196, 0.32);
+      color: var(--success);
+    }
+
+    .status.error {
+      border-color: rgba(255, 141, 141, 0.36);
+      color: var(--danger);
+    }
+
+    .summary-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(8, 14, 24, 0.88);
+      border: 1px solid rgba(122, 211, 255, 0.14);
+    }
+
+    .summary-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .summary-value {
+      margin-top: 8px;
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .route-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .route-card {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(122, 211, 255, 0.18);
+      background: linear-gradient(180deg, rgba(14, 23, 37, 0.94), rgba(7, 12, 22, 0.96));
+    }
+
+    .route-card.best {
+      border-color: var(--border-strong);
+      box-shadow: 0 14px 40px rgba(255, 208, 122, 0.12);
+    }
+
+    .route-header {
+      padding: 18px 18px 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      background:
+        linear-gradient(135deg, rgba(255, 208, 122, 0.1), transparent 36%),
+        rgba(255, 255, 255, 0.02);
+    }
+
+    .route-rank {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-strong);
+    }
+
+    .route-seq {
+      margin-top: 6px;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+    }
+
+    .route-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .metric-chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(3, 8, 16, 0.78);
+      border: 1px solid rgba(122, 211, 255, 0.16);
+      color: var(--text);
+    }
+
+    .route-body {
+      padding: 0 18px 18px;
+    }
+
+    .route-copy {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .tiny-note {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 208, 122, 0.14);
+      color: var(--accent-strong);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .muted-list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .unit-plan-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .unit-card {
+      border: 1px solid rgba(122, 211, 255, 0.16);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(7, 12, 22, 0.64);
+    }
+
+    .unit-card.active {
+      border-color: rgba(255, 213, 130, 0.46);
+      box-shadow: inset 0 0 0 1px rgba(255, 213, 130, 0.08);
+    }
+
+    .unit-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .unit-name {
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .unit-meta {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .unit-lock {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(122, 211, 255, 0.12);
+      color: var(--accent-strong);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .mobile-dock {
+      display: none;
+    }
+
+    @media (max-width: 1120px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .result-panel {
+        position: static;
+      }
+
+      .summary-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding-bottom: calc(88px + env(safe-area-inset-bottom));
+      }
+
+      .shell {
+        width: min(100vw - 16px, 100%);
+        margin: 8px auto 22px;
+        padding: 12px 12px 22px;
+        border-radius: 22px;
+      }
+
+      .hero,
+      .panel {
+        padding: 16px;
+      }
+
+      .hero {
+        border-radius: 20px;
+      }
+
+      h1 {
+        max-width: 100%;
+        font-size: clamp(24px, 8vw, 34px);
+      }
+
+      .hero p {
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .hero-metrics {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .pill {
+        flex: 0 0 auto;
+        padding: 8px 11px;
+        font-size: 11px;
+      }
+
+      details.panel {
+        padding: 0;
+      }
+
+      .quick-section {
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .collapse-summary {
+        align-items: flex-start;
+        padding: 16px;
+      }
+
+      .panel-inner {
+        padding: 0 16px 16px;
+      }
+
+      .action-strip .warn {
+        width: 100%;
+      }
+
+      .action-strip button.secondary {
+        flex: 1 1 calc(50% - 8px);
+        padding-inline: 12px;
+        font-size: 12px;
+      }
+
+      .field-grid,
+      .summary-strip {
+        grid-template-columns: 1fr;
+      }
+
+      input,
+      select,
+      textarea {
+        font-size: 16px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .route-header {
+        padding: 14px 14px 10px;
+      }
+
+      .route-seq {
+        font-size: 18px;
+      }
+
+      .route-metrics {
+        justify-content: flex-start;
+      }
+
+      .route-body {
+        padding: 0 12px 12px;
+      }
+
+      th,
+      td {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+
+      .mobile-dock {
+        position: fixed;
+        z-index: 30;
+        left: 10px;
+        right: 10px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        display: grid;
+        grid-template-columns: 1.25fr 1fr 1fr;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid rgba(255, 213, 130, 0.28);
+        border-radius: 22px;
+        background: rgba(7, 12, 22, 0.9);
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.42);
+        backdrop-filter: blur(14px);
+      }
+
+      .mobile-dock a,
+      .mobile-dock button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        border-radius: 16px;
+        text-decoration: none;
+        color: var(--text);
+        background: rgba(19, 33, 56, 0.82);
+        border: 1px solid rgba(122, 211, 255, 0.2);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .mobile-dock button {
+        color: #1d1200;
+        background: linear-gradient(135deg, #ffd27b, #fff0b8);
+        border-color: transparent;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <p class="eyebrow">FC Robot Wars Planner</p>
+      <h1>经验路线不是凑总数，而是逐杀顺序搜索</h1>
+      <p>
+        这个工具按你前面讨论的机制来算：每次击杀都基于当前等级重新计算经验，升级溢出继续保留，
+        然后在给定怪物等级、基础经验和数量约束下，搜索“严格停在目标等级”的最优击杀顺序。
+      </p>
+      <div class="hero-metrics">
+        <span class="pill">支持有限数量和无限数量混搭</span>
+        <span class="pill">支持目标等级窗口筛选</span>
+        <span class="pill">支持前几名候选路线</span>
+        <span class="pill">支持多机体路线锁定</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="column">
+        <section id="quickPanel" class="panel quick-panel">
+          <h2>快速规划</h2>
+          <p class="panel-note">
+            常用流程集中在这里：先选经验计算关卡范围，再填机体等级和剩余升级经验，最后直接计算。
+            “当前剩余升级经验”指的是距离下一级还差多少。
+          </p>
+          <div class="quick-section">
+            <p class="quick-section-title">1. 经验计算关卡范围</p>
+            <p class="panel-note">
+              求解时会按关卡库中的顺序逐关推进，不会把后面关卡的怪提前拿来算。
+            </p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="planStartStageSelect">起始关卡</label>
+                <select id="planStartStageSelect"></select>
+              </div>
+              <div class="field">
+                <label for="planEndStageSelect">结束关卡</label>
+                <select id="planEndStageSelect"></select>
+              </div>
+            </div>
+          </div>
+          <div class="quick-section">
+            <p class="quick-section-title">2. 机体状态与目标</p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="currentLevel">当前等级</label>
+                <input id="currentLevel" type="number" min="1" step="1" value="35" />
+              </div>
+              <div class="field">
+                <label for="remainingToNext">当前剩余升级经验</label>
+                <input id="remainingToNext" type="number" min="1" step="1" value="1325" />
+              </div>
+              <div class="field">
+                <label for="targetLevel">目标等级</label>
+                <input id="targetLevel" type="number" min="1" step="1" value="37" />
+              </div>
+              <div class="field">
+                <label for="objectiveMode">优化目标</label>
+                <select id="objectiveMode">
+                  <option value="closest">停在目标等级且尽量贴近下一级</option>
+                  <option value="range">停在目标等级且落入剩余经验区间</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="routePriority">路线排序偏好</label>
+                <select id="routePriority">
+                  <option value="balanced">平衡少杀和贴近目标</option>
+                  <option value="efficient">严格少杀优先</option>
+                  <option value="closest">极限贴近下一级</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="strategyMode">击杀策略</label>
+                <select id="strategyMode">
+                  <option value="strategic">启用窗口/跳段策略</option>
+                  <option value="neutral">关闭策略评分</option>
+                </select>
+              </div>
+              <div id="rangeFields" class="field field-wide hidden">
+                <div class="field-grid" style="margin-top: 0;">
+                  <div class="field">
+                    <label for="minRemaining">剩余经验下限</label>
+                    <input id="minRemaining" type="number" min="0" step="1" value="80" />
+                  </div>
+                  <div class="field">
+                    <label for="maxRemaining">剩余经验上限</label>
+                    <input id="maxRemaining" type="number" min="0" step="1" value="150" />
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="roundMode">经验取整方式</label>
+                <select id="roundMode">
+                  <option value="floor">向下取整</option>
+                  <option value="round">四舍五入</option>
+                  <option value="ceil">向上取整</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="maxRoutes">展示路线条数</label>
+                <input id="maxRoutes" type="number" min="1" max="20" step="1" value="8" />
+              </div>
+            </div>
+          </div>
+          <div class="toolbar action-strip">
+            <button id="solveButton" class="warn">计算最优路线</button>
+            <button id="loadSample35" class="secondary">载入 35→37 样例</button>
+            <button id="loadSample32" class="secondary">载入 32→37 约束样例</button>
+            <button id="resetButton" class="secondary">重置默认值</button>
+          </div>
+        </section>
+
+        <details class="panel">
+          <summary class="collapse-summary">
+            <span class="collapse-title">
+              <strong>多机体路线锁定</strong>
+              <span>需要给多个机体分配击杀路线时再展开。</span>
+            </span>
+          </summary>
+          <div class="panel-inner">
+          <p class="panel-note">
+            先选一个机体，再用上方参数计算路线。把某条路线锁定给该机体后，后续机体计算会自动避开已经被它击杀的有限敌机。
+          </p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="unitSelect">当前机体</label>
+              <select id="unitSelect"></select>
+            </div>
+            <div class="field">
+              <label for="unitNameInput">机体名称</label>
+              <input id="unitNameInput" type="text" maxlength="32" placeholder="例如：Z高达" />
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="saveUnitButton" class="secondary">保存上方状态到机体</button>
+            <button id="createUnitButton" class="secondary">新增机体</button>
+            <button id="deleteUnitButton" class="secondary">删除机体</button>
+            <button id="clearUnitRouteButton" class="secondary">清除当前锁定</button>
+            <button id="clearAllUnitRoutesButton" class="secondary">清空全部锁定</button>
+          </div>
+          <div id="unitPlanList" class="unit-plan-list"></div>
+          </div>
+        </details>
+
+        <details class="panel">
+          <summary class="collapse-summary">
+            <span class="collapse-title">
+              <strong>升级经验表</strong>
+              <span>基础数据已内置，只有校对或改表时需要展开。</span>
+            </span>
+          </summary>
+          <div class="panel-inner">
+          <p class="panel-note">
+            已按你附图预置 1 到 50 级官方升级经验，你仍然可以手动改。这里填“某等级升到下一级所需经验”。
+          </p>
+          <table id="needTable">
+            <thead>
+              <tr>
+                <th>等级</th>
+                <th>升级所需经验</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="toolbar">
+            <button id="loadOfficialNeeds" class="secondary">恢复官方 1-50 表</button>
+            <button id="addNeedRow" class="secondary">新增等级行</button>
+          </div>
+          </div>
+        </details>
+
+        <details class="panel">
+          <summary class="collapse-summary">
+            <span class="collapse-title">
+              <strong>关卡怪物库</strong>
+              <span>管理关卡、保存敌机配置、调整关卡顺序时再展开。</span>
+            </span>
+          </summary>
+          <div class="panel-inner">
+          <p class="panel-note">
+            可击杀怪会按关卡名保存到浏览器本地。计算前会同步保存当前正在编辑的关卡；切换关卡前如果刚改过怪物，建议先点保存当前关卡。
+          </p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="stageSelect">当前关卡</label>
+              <select id="stageSelect"></select>
+            </div>
+            <div class="field">
+              <label for="stageNameInput">关卡名称</label>
+              <input id="stageNameInput" type="text" maxlength="40" placeholder="例如：第 12 关" />
+            </div>
+          </div>
+          <div class="toolbar">
+            <button id="createStageButton" class="secondary">新建空关卡</button>
+            <button id="loadPresetStagesButton" class="secondary">载入内置 1-26 关</button>
+            <button id="saveStageButton" class="secondary">保存当前关卡</button>
+            <button id="deleteStageButton" class="secondary">删除当前关卡</button>
+            <button id="moveStageUpButton" class="secondary">上移关卡</button>
+            <button id="moveStageDownButton" class="secondary">下移关卡</button>
+          </div>
+          </div>
+        </details>
+
+        <details class="panel">
+          <summary class="collapse-summary">
+            <span class="collapse-title">
+              <strong>怪物池</strong>
+              <span>编辑当前关卡可击杀敌机时再展开。</span>
+            </span>
+          </summary>
+          <div class="panel-inner">
+          <p class="panel-note">
+            数量为空或勾选“无限”时，这类怪会被视为可无限击杀。路线搜索会自动结合数量约束。
+          </p>
+          <table id="enemyTable">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>基础经验</th>
+                <th>怪物等级</th>
+                <th>数量</th>
+                <th>无限</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="toolbar">
+            <button id="addEnemyRow" class="secondary">新增怪物</button>
+          </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="column">
+        <section id="resultPanel" class="panel result-panel">
+          <h2>结果</h2>
+          <p class="panel-note">
+            排序规则：先看是否满足目标；目标区间内默认少杀优先；非区间目标按上方“路线排序偏好”排序。
+          </p>
+          <div id="statusBox" class="status">等待计算。</div>
+          <div id="summaryBox" class="summary-strip hidden"></div>
+          <div id="resultList" class="route-list"></div>
+          <ul class="muted-list">
+            <li>经验公式：基础经验 × (怪物等级 ÷ 5) × 等级差系数。</li>
+            <li>升级时默认保留溢出经验，并继续冲下一等级。</li>
+            <li>平衡模式会把每多一次击杀视作约 5% 本级升级经验的成本，减少低收益补刀。</li>
+            <li>窗口/跳段策略会偏好差 8 级且临近升级时击杀高价值敌机，并奖励 37/38/41 附近的一杀穿段。</li>
+            <li>大跨度搜索会用父指针和限宽候选池降低内存占用；结果仍按目标规则排序。</li>
+          </ul>
+        </section>
+
+        <details class="panel">
+          <summary class="collapse-summary">
+            <span class="collapse-title">
+              <strong>等级差系数规则</strong>
+              <span>经验衰减和等级差倍率已内置，只有改规则时需要展开。</span>
+            </span>
+          </summary>
+          <div class="panel-inner">
+            <p class="panel-note">
+              每行一条，格式示例：<code>&gt;=8,5</code>、<code>-3,1/6</code>、<code>&lt;=-7,exp:1</code>。未定义的等级差不会参与计算。
+            </p>
+            <div class="field-grid">
+              <div class="field field-wide">
+                <label for="coefRules">系数规则</label>
+                <textarea id="coefRules"></textarea>
+              </div>
+            </div>
+            <div class="tiny-note">
+              已内置敌人等级低于我方时的衰减：-1 到 -6 走倍率衰减，<= -7 固定只拿 1 点经验。
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <nav class="mobile-dock" aria-label="H5 快捷操作">
+    <button id="mobileSolveButton" type="button">计算</button>
+    <a href="#quickPanel">参数</a>
+    <a href="#resultPanel">结果</a>
+  </nav>
+
+  <template id="needRowTemplate">
+    <tr>
+      <td><input data-role="level" type="number" min="1" step="1" /></td>
+      <td><input data-role="need" type="number" min="1" step="1" /></td>
+      <td><button type="button" class="secondary mini-button" data-action="remove-row">删</button></td>
+    </tr>
+  </template>
+
+  <template id="enemyRowTemplate">
+    <tr>
+      <td><input data-role="name" type="text" maxlength="24" /></td>
+      <td><input data-role="baseExp" type="number" min="0" step="1" /></td>
+      <td><input data-role="enemyLevel" type="number" min="1" step="1" /></td>
+      <td><input data-role="quantity" type="number" min="0" step="1" /></td>
+      <td>
+        <label class="checkbox">
+          <input data-role="unlimited" type="checkbox" />
+          无限
+        </label>
+      </td>
+      <td><button type="button" class="secondary mini-button" data-action="remove-row">删</button></td>
+    </tr>
+  </template>
+
+  <script>
+    const STORAGE_KEYS = {
+      formState: "fc_srw2_exp_planner_form_state_v2",
+      stageLibrary: "fc_srw2_exp_planner_stage_library_v2",
+      unitPlans: "fc_srw2_exp_planner_unit_plans_v1"
+    };
+
+    const officialLevelNeeds = [
+      { level: 1, need: 30 },
+      { level: 2, need: 50 },
+      { level: 3, need: 90 },
+      { level: 4, need: 140 },
+      { level: 5, need: 290 },
+      { level: 6, need: 300 },
+      { level: 7, need: 400 },
+      { level: 8, need: 500 },
+      { level: 9, need: 600 },
+      { level: 10, need: 600 },
+      { level: 11, need: 800 },
+      { level: 12, need: 780 },
+      { level: 13, need: 940 },
+      { level: 14, need: 1200 },
+      { level: 15, need: 960 },
+      { level: 16, need: 1020 },
+      { level: 17, need: 1080 },
+      { level: 18, need: 1140 },
+      { level: 19, need: 1200 },
+      { level: 20, need: 1260 },
+      { level: 21, need: 1320 },
+      { level: 22, need: 1380 },
+      { level: 23, need: 1440 },
+      { level: 24, need: 1500 },
+      { level: 25, need: 1560 },
+      { level: 26, need: 1620 },
+      { level: 27, need: 1680 },
+      { level: 28, need: 1800 },
+      { level: 29, need: 1800 },
+      { level: 30, need: 1860 },
+      { level: 31, need: 1800 },
+      { level: 32, need: 1980 },
+      { level: 33, need: 2040 },
+      { level: 34, need: 2100 },
+      { level: 35, need: 2220 },
+      { level: 36, need: 2220 },
+      { level: 37, need: 2280 },
+      { level: 38, need: 2340 },
+      { level: 39, need: 2400 },
+      { level: 40, need: 2460 },
+      { level: 41, need: 2560 },
+      { level: 42, need: 1000 },
+      { level: 43, need: 1050 },
+      { level: 44, need: 1100 },
+      { level: 45, need: 1160 },
+      { level: 46, need: 1220 },
+      { level: 47, need: 1280 },
+      { level: 48, need: 1340 },
+      { level: 49, need: 1400 },
+      { level: 50, need: 2245 }
+    ];
+
+    const defaultEnemyPool = [
+      { name: "A", baseExp: 110, enemyLevel: 38, quantity: "", unlimited: true },
+      { name: "B", baseExp: 110, enemyLevel: 39, quantity: "", unlimited: true },
+      { name: "C", baseExp: 140, enemyLevel: 38, quantity: "", unlimited: true }
+    ];
+
+    const presetStageRows = `
+1	第1话「救出!! Z高达」	敌方单位	扎古	2	90	3
+1	第1话「救出!! Z高达」	敌方单位	扎古	1	90	3
+1	第1话「救出!! Z高达」	敌方单位	扎古	3	90	3
+1	第1话「救出!! Z高达」	敌方单位	达布拉斯M2	1	125	1
+1	第1话「救出!! Z高达」	敌方单位	加拉达K7	1	110	1
+1	第1话「救出!! Z高达」	敌方单位	泽恩II	4	100	1
+1	第1话「救出!! Z高达」	敌方单位	兹萨	3	90	1
+1	第1话「救出!! Z高达」	增援（第11敌方回合）	扎古	13	90	1
+1	第1话「救出!! Z高达」	增援（第11敌方回合）	扎古	5	90	1
+1	第1话「救出!! Z高达」	增援（第11敌方回合）	扎古	2	90	1
+2	第2话「谋略之镇」	敌方单位、增援（第6敌方回合）	扎古	3	90	4
+2	第2话「谋略之镇」	敌方单位、增援（第6敌方回合）	扎古	4	90	4
+2	第2话「谋略之镇」	敌方单位	古夫	4	100	2
+2	第2话「谋略之镇」	敌方单位	巴德	4	115	1
+2	第2话「谋略之镇」	敌方单位	盖塔Q	5	50	1
+2	第2话「谋略之镇」	敌方单位	马拉塞	7	120	1
+2	第2话「谋略之镇」	敌方单位	马拉塞	6	120	1
+2	第2话「谋略之镇」	敌方单位	阿尔索斯	5	140	1
+2	第2话「谋略之镇」	增援（第6敌方回合）	古夫	10	100	1
+3	第3话「达喀尔的压制」	敌方单位	扎古	5	90	3
+3	第3话「达喀尔的压制」	敌方单位	巴德	6	115	2
+3	第3话「达喀尔的压制」	敌方单位	托洛斯D7	4	150	1
+3	第3话「达喀尔的压制」	敌方单位	兹萨	5	90	4
+3	第3话「达喀尔的压制」	敌方单位	红扎古	13	110	1
+3	第3话「达喀尔的压制」	敌方单位	艾尔美斯	10	90	1
+3	第3话「达喀尔的压制」	敌方单位	高战蟹	6	75	3
+3	第3话「达喀尔的压制」	增援（第4敌方回合）	大魔	14	105	1
+3	第3话「达喀尔的压制」	增援（第4敌方回合）	大魔	13	105	2
+4	第4话「反击」	敌方单位	马拉塞	8	120	2
+4	第4话「反击」	敌方单位	大魔	13	105	3
+4	第4话「反击」	敌方单位	魔蟹E	9	75	3
+4	第4话「反击」	敌方单位	扎克雷罗	11	200	1
+4	第4话「反击」	敌方单位	加萨C	8	90	4
+4	第4话「反击」	敌方单位	巴德	9	115	2
+4	第4话「反击」	增援（第4敌方回合）	扎克雷罗	10	200	1
+4	第4话「反击」	增援（第8敌方回合）	兹萨	16	90	1
+4	第4话「反击」	增援（第8敌方回合）	兹萨	9	90	2
+4	第4话「反击」	增援（第8敌方回合）	加萨C	9	90	3
+5	第5话「背叛的荒野」	敌方单位	比格·萨姆	21	200	1
+5	第5话「背叛的荒野」	敌方单位	马拉塞	13	120	3
+5	第5话「背叛的荒野」	敌方单位	托洛斯D7	12	150	3
+5	第5话「背叛的荒野」	敌方单位	兹萨	11	90	3
+5	第5话「背叛的荒野」	敌方单位	巴德	10	115	5
+5	第5话「背叛的荒野」	增援（第9回合）	大魔		105	5
+5	第5话「背叛的荒野」	增援（第11回合）	古夫		100	1
+6	第6话「破坏敌方要塞」	敌方单位	机械蝴蝶鬼	16	120	1
+6	第6话「破坏敌方要塞」	敌方单位	固定炮台	13	100	5
+6	第6话「破坏敌方要塞」	敌方单位	固定炮台	12	100	5
+6	第6话「破坏敌方要塞」	敌方单位	大魔	12	105	3
+6	第6话「破坏敌方要塞」	敌方单位	马拉塞	11	120	2
+6	第6话「破坏敌方要塞」	增援（第2敌方回合）	阿希玛	16	100	1
+6	第6话「破坏敌方要塞」	增援（第6敌方回合）	大魔	16	105	1
+6	第6话「破坏敌方要塞」	增援（第6敌方回合）	大魔	13	105	3
+7	第7话「决斗!! 莱茵X1」	敌方单位	莱茵X1	21	175	1
+7	第7话「决斗!! 莱茵X1」	敌方单位	杰诺巴M9	15	110	3
+7	第7话「决斗!! 莱茵X1」	敌方单位	马拉塞	14	120	3
+7	第7话「决斗!! 莱茵X1」	敌方单位	加萨C	14	90	2
+7	第7话「决斗!! 莱茵X1」	敌方单位	兹萨	14	90	2
+7	第7话「决斗!! 莱茵X1」	敌方单位	扎伊	14	190	2
+7	第7话「决斗!! 莱茵X1」	增援（第6敌方回合）	巴德	16	115	5
+7	第7话「决斗!! 莱茵X1」	增援（第8敌方回合）	泽恩II	18	100	1
+7	第7话「决斗!! 莱茵X1」	增援（第8敌方回合）	吉尔吉尔	16	100	4
+8	第8话「马·克贝的陷阱」	敌方单位	强人	29	190	1
+8	第8话「马·克贝的陷阱」	敌方单位	马拉塞	16	120	3
+8	第8话「马·克贝的陷阱」	敌方单位	加萨C	16	90	3
+8	第8话「马·克贝的陷阱」	敌方单位	兹萨	16	90	3
+8	第8话「马·克贝的陷阱」	敌方单位	加萨C	14	90	3
+8	第8话「马·克贝的陷阱」	敌方单位	密涅瓦X	18	140	1
+8	第8话「马·克贝的陷阱」	增援（第10敌方回合）	杰诺巴M9	16	110	1
+8	第8话「马·克贝的陷阱」	增援（第10敌方回合）	扎伊	16	190	2
+9	第9话「复仇之风」	敌方单位	强人	26	190	1
+9	第9话「复仇之风」	增援（第1敌方回合）	加萨C	18	90	3
+9	第9话「复仇之风」	增援（第1敌方回合）	扎伊	18	190	3
+9	第9话「复仇之风」	增援（第1敌方回合）	巴德	18	115	3
+9	第9话「复仇之风」	增援（第1敌方回合）	兹萨	19	90	3
+9	第9话「复仇之风」	增援（第2敌方回合）	制导导弹	19	25	4
+10	第10话「傀儡·凤」	敌方单位	精神力高达（MS）	24	150	1
+10	第10话「傀儡·凤」	敌方单位	拜亚兰	31	150	2
+10	第10话「傀儡·凤」	敌方单位	德莱森	19	110	3
+10	第10话「傀儡·凤」	敌方单位	德莱森	18	110	3
+10	第10话「傀儡·凤」	敌方单位	戴	23	190	1
+10	第10话「傀儡·凤」	敌方单位	巴德	15	115	3
+10	第10话「傀儡·凤」	敌方单位	吉尔吉尔	19	100	2
+10	第10话「傀儡·凤」	敌方单位	马拉塞	13	120	3
+10	第10话「傀儡·凤」	增援（第5敌方回合）	戴	21	190	1
+10	第10话「傀儡·凤」	增援（第5敌方回合）	古西奥斯βIII	20	110	2
+10	第10话「傀儡·凤」	增援（第10敌方回合）	扎克雷罗	21	200	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	古西奥斯βIII	19	110	2
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	古西奥斯βIII	20	110	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	阿希玛（MS）	20	100	3
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	杰诺巴M9	21	110	2
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	巴德	21	115	3
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	机械雷兽鬼	22	130	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	吉尔吉尔	23	100	2
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	敌方单位	戴	24	190	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	增援（第5敌方回合）	瓦尔西昂	31	0	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	增援（第8敌方回合）	拜亚兰	22	150	1
+11	第11话「惊异!! 究极机器人 瓦尔西昂」	增援（第8敌方回合）	兹萨	22	90	2
+12	第12话「拉萨攻防战」	敌方单位	兹萨	22	90	2
+12	第12话「拉萨攻防战」	敌方单位	比格·萨姆	27	200	1
+12	第12话「拉萨攻防战」	敌方单位	阿希玛（MS）	21	100	1
+12	第12话「拉萨攻防战」	敌方单位	巴德	21	115	2
+12	第12话「拉萨攻防战」	敌方单位	机械雷兽鬼	22	130	2
+12	第12话「拉萨攻防战」	敌方单位	戴	23	190	1
+12	第12话「拉萨攻防战」	敌方单位	阿尔索斯	23	140	2
+12	第12话「拉萨攻防战」	敌方单位	邦格	23	140	1
+12	第12话「拉萨攻防战」	增援（第6敌方回合）	巴德	23	115	3
+13	第13话「希罗克的阴影」	敌方单位	扎古III改	29	125	1
+13	第13话「希罗克的阴影」	敌方单位	卡碧尼	38	155	1
+13	第13话「希罗克的阴影」	敌方单位	卡碧尼Mk-II	26	100	1
+13	第13话「希罗克的阴影」	敌方单位	帕拉斯·雅典娜	23	150	1
+13	第13话「希罗克的阴影」	敌方单位	帕拉斯·雅典娜	36	150	1
+13	第13话「希罗克的阴影」	敌方单位	帕拉斯·雅典娜	21	150	1
+13	第13话「希罗克的阴影」	敌方单位	猎犬	29	125	1
+13	第13话「希罗克的阴影」	敌方单位	德莱森	23	110	4
+13	第13话「希罗克的阴影」	敌方单位	加萨C	19	90	2
+13	第13话「希罗克的阴影」	敌方单位	贾拉加	24	110	1
+13	第13话「希罗克的阴影」	增援（第5敌方回合）	金刚哥里	24	120	3
+13	第13话「希罗克的阴影」	增援（第5敌方回合）	阿尔索斯	24	140	3
+14	第14话「向宇宙…」	敌方单位	巴乌	24	140	1
+14	第14话「向宇宙…」	敌方单位	精神力高达Mk-II（MS）	36	200	1
+14	第14话「向宇宙…」	敌方单位	汉布拉比	36	100	1
+14	第14话「向宇宙…」	敌方单位	扎古III	24	125	4
+14	第14话「向宇宙…」	敌方单位	德莱森	21	110	6
+14	第14话「向宇宙…」	敌方单位	扎古III	36	125	1
+14	第14话「向宇宙…」	增援（第2敌方回合）	德莱森	24	110	3
+14	第14话「向宇宙…」	增援（第8敌方回合）	德莱森	25	200	2
+14	第14话「向宇宙…」	增援（第8敌方回合）	加姆鲁·芬	25	135	1
+14	第14话「向宇宙…」	增援（第9敌方回合）	扎古III	25	125	3
+15	第15话「激战！朱庇特里斯」	敌方单位	帕拉斯·雅典娜	41	150	1
+15	第15话「激战！朱庇特里斯」	敌方单位	帕拉斯·雅典娜	37	150	2
+15	第15话「激战！朱庇特里斯」	敌方单位	加姆鲁·芬	26	135	2
+15	第15话「激战！朱庇特里斯」	敌方单位	加姆鲁·芬	24	135	2
+15	第15话「激战！朱庇特里斯」	敌方单位	猎犬	33	125	2
+15	第15话「激战！朱庇特里斯」	敌方单位	德莱森	26	110	2
+15	第15话「激战！朱庇特里斯」	敌方单位	加萨C	21	90	2
+15	第15话「激战！朱庇特里斯」	敌方单位	盖马克	26	130	1
+15	第15话「激战！朱庇特里斯」	敌方单位	精神力高达Mk-II	31	200	1
+15	第15话「激战！朱庇特里斯」	增援（第4敌方回合）	猎犬	26	125	3
+16	第16话「脱出」	敌方单位	拉芙蕾西亚	46	240	1
+16	第16话「脱出」	敌方单位	雅克特·德卡	45	150	2
+16	第16话「脱出」	敌方单位	基拉·德卡	45	110	1
+16	第16话「脱出」	敌方单位	基拉·德卡	40	110	2
+16	第16话「脱出」	敌方单位	西格	42	140	1
+16	第16话「脱出」	敌方单位	机械雷兽鬼	40	130	1
+16	第16话「脱出」	敌方单位	德莱森	38	110	2
+16	第16话「脱出」	敌方单位	德莱森	39	110	1
+16	第16话「脱出」	敌方单位	基拉·德卡	38	110	2
+16	第16话「脱出」	敌方单位	巴乌	38	140	2
+16	第16话「脱出」	敌方单位	比基纳·基纳	43	190	1
+17	第17话「太阳射线发动」	敌方单位	发电镜	30	40	4
+17	第17话「太阳射线发动」	敌方单位	巴乌	35	140	1
+17	第17话「太阳射线发动」	敌方单位	巴乌	29	140	3
+17	第17话「太阳射线发动」	敌方单位	加姆鲁·芬	30	135	3
+17	第17话「太阳射线发动」	敌方单位、增援（第7敌方回合）	吉尔吉尔	29	100	3
+17	第17话「太阳射线发动」	敌方单位	扎伊	29	190	1
+17	第17话「太阳射线发动」	敌方单位	阿尔索斯	29	140	1
+17	第17话「太阳射线发动」	敌方单位	巴乌	28	140	2
+17	第17话「太阳射线发动」	敌方单位	卡碧尼Mk-II（璞露）	30	100	1
+17	第17话「太阳射线发动」	增援（第4敌方回合）	加姆鲁·芬	28	135	3
+17	第17话「太阳射线发动」	增援（第7敌方回合）	邦格	30	140	1
+17	第17话「太阳射线发动」	增援（第9敌方回合）	扎克雷罗	28	200	3
+18	第18话「潜入！孔培岛」	敌方单位	巴乌	37	140	1
+18	第18话「潜入！孔培岛」	敌方单位	杜宾狼	36	135	1
+18	第18话「潜入！孔培岛」	敌方单位、增援（第7敌方回合）	汉布拉比	30	100	7
+18	第18话「潜入！孔培岛」	敌方单位	布拉格S1	29	190	2
+18	第18话「潜入！孔培岛」	敌方单位	巴乌	29	140	1
+18	第18话「潜入！孔培岛」	敌方单位、增援（第7敌方回合）	巴乌	30	140	5
+18	第18话「潜入！孔培岛」	增援（第5敌方回合）	扎古III	30	125	2
+18	第18话「潜入！孔培岛」	增援（第5敌方回合）	杜宾狼	39	135	1
+18	第18话「潜入！孔培岛」	增援（第5敌方回合）	吉尔吉尔	30	100	2
+18	第18话「潜入！孔培岛」	增援（第7敌方回合）	梅萨拉	30	150	1
+19	第19话「月面死斗」	敌方单位	布拉格S1	30	190	3
+19	第19话「月面死斗」	敌方单位	巴乌	30	140	2
+19	第19话「月面死斗」	敌方单位	扎伊	30	190	3
+19	第19话「月面死斗」	敌方单位	加姆鲁·芬	30	135	1
+19	第19话「月面死斗」	敌方单位	猎犬	31	125	1
+19	第19话「月面死斗」	敌方单位	精神力高达Mk-II（MS）	39	200	1
+19	第19话「月面死斗」	敌方单位	卡碧尼	46	155	1
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	汉布拉比	26	100	2
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	阿尔索斯	29	140	2
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	杜宾狼	32	135	3
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	加姆鲁·芬	33	135	1
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	杰诺巴M9	32	110	2
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	邦格	32	140	2
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	卡碧尼	37	155	1
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	盖马克	36	130	1
+20	第20话「决战!! 格拉纳达要塞」	敌方单位	盖马克	34	130	1
+20	第20话「决战!! 格拉纳达要塞」	增援（第1敌方回合）	古兰森	41	400	1
+20	第20话「决战!! 格拉纳达要塞」	增援（第5敌方回合）	布拉格S1	30	190	2
+20	第20话「决战!! 格拉纳达要塞」	增援（第5敌方回合）	杜宾狼	39	135	1
+20	第20话「决战!! 格拉纳达要塞」	增援（第5敌方回合）	吉尔吉尔	30	100	2
+21	第21话「时间啊，停止吧」	敌方单位	瓦尔西昂	50	0	1
+21	第21话「时间啊，停止吧」	增援（第1敌方回合）	金刚哥里	33	120	1
+21	第21话「时间啊，停止吧」	增援（第3敌方回合）	邦格	33	140	1
+21	第21话「时间啊，停止吧」	增援（第3敌方回合）	布拉格S1	33	190	1
+22	第22话「大气层突入」	敌方单位	卡碧尼	38	155	1
+22	第22话「大气层突入」	敌方单位	盖马克	36	130	1
+22	第22话「大气层突入」	敌方单位	扎古III改	37	125	1
+22	第22话「大气层突入」	敌方单位	基拉·德卡	34	110	3
+22	第22话「大气层突入」	敌方单位	精神力高达Mk-II（MS）	37	200	1
+22	第22话「大气层突入」	敌方单位	基拉·德卡	36	110	1
+22	第22话「大气层突入」	敌方单位	汉布拉比	34	100	1
+22	第22话「大气层突入」	敌方单位	巴乌	34	140	1
+22	第22话「大气层突入」	敌方单位	杜宾狼	34	135	1
+22	第22话「大气层突入」	敌方单位	猎犬	35	125	2
+22	第22话「大气层突入」	敌方单位	杜宾狼	37	135	1
+22	第22话「大气层突入」	增援（第3敌方回合）	布拉格S1	33	190	3
+23	第23话「希罗克的逆袭」	敌方单位	迪·奥	41	250	1
+23	第23话「希罗克的逆袭」	敌方单位	梅萨拉（MS）	38	150	1
+23	第23话「希罗克的逆袭」	敌方单位	帕拉斯·雅典娜	39	150	1
+23	第23话「希罗克的逆袭」	敌方单位	基拉·德卡	35	110	3
+23	第23话「希罗克的逆袭」	敌方单位	雅克特·德卡	35	150	3
+23	第23话「希罗克的逆袭」	敌方单位	固定炮台	35	100	3
+23	第23话「希罗克的逆袭」	敌方单位	制导导弹	35	25	3
+23	第23话「希罗克的逆袭」	敌方单位	布拉格S1	36	190	2
+23	第23话「希罗克的逆袭」	增援（第5敌方回合）	古兰森	49	400	1
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	吉尔吉尔刚	44	350	1
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	基拉·德卡	37	110	2
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	布拉格S1	37	190	1
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	高战蟹	37	75	2
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	杜宾狼	38	135	2
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	卡碧尼	48	155	1
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	盖马克	38	130	3
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	巴乌	37	140	2
+24	第24话「吉尔吉尔刚的亡灵」	敌方单位	巴乌	38	140	1
+24	第24话「吉尔吉尔刚的亡灵」	增援（第5敌方回合）	制导导弹	36	25	2
+25	第25话「最后大队再临」	敌方单位	基拉·德卡	39	110	2
+25	第25话「最后大队再临」	敌方单位	雅克特·德卡	45	150	1
+25	第25话「最后大队再临」	敌方单位	扎古III	38	125	3
+25	第25话「最后大队再临」	敌方单位	卡碧尼	39	155	1
+25	第25话「最后大队再临」	敌方单位	加姆鲁·芬	38	135	1
+25	第25话「最后大队再临」	敌方单位	拉芙蕾西亚	46	240	1
+25	第25话「最后大队再临」	敌方单位	α·阿吉尔	43	210	1
+25	第25话「最后大队再临」	敌方单位	雅克特·德卡	43	150	1
+25	第25话「最后大队再临」	敌方单位	雅克特·德卡	42	150	1
+25	第25话「最后大队再临」	敌方单位	古尔	42	160	1
+25	第25话「最后大队再临」	敌方单位	比格·萨姆	40	200	2
+25	第25话「最后大队再临」	增援（第1敌方回合）	比基纳·基纳	46	190	1
+25	第25话「最后大队再临」	增援（第2敌方回合）	卡碧尼	48	155	1
+25	第25话「最后大队再临」	增援（第2敌方回合）	盖马克	48	130	1
+25	第25话「最后大队再临」	增援（第4敌方回合）	雅克特·德卡	48	150	2
+26	第26话「拂晓决战」	敌方单位	瓦尔西昂	50	0	1
+26	第26话「拂晓决战」	敌方单位	古兰森	49	400	1
+26	第26话「拂晓决战」	敌方单位	盖马克	46	130	2
+`;
+
+    const defaultCoefRules = [
+      "# 规则按输入顺序匹配，精确值优先于区间值",
+      "-1,0.5",
+      "-2,0.25",
+      "-3,1/6",
+      "-4,0.125",
+      "-5,0.1",
+      "-6,1/12",
+      "<=-7,exp:1",
+      ">=8,5",
+      "7,4.5",
+      "6,4",
+      "5,3.5",
+      "4,3",
+      "3,2.5",
+      "2,2",
+      "1,1.5",
+      "0,1"
+    ].join("\n");
+
+    const defaultFormState = {
+      currentLevel: 35,
+      remainingToNext: 1325,
+      targetLevel: 37,
+      objectiveMode: "closest",
+      routePriority: "balanced",
+      strategyMode: "strategic",
+      minRemaining: 80,
+      maxRemaining: 150,
+      maxRoutes: 8,
+      roundMode: "floor",
+      needs: officialLevelNeeds,
+      coefRules: defaultCoefRules,
+      selectedStageId: "preset-stage-01",
+      planStartStageId: "preset-stage-01",
+      planEndStageId: "preset-stage-01"
+    };
+
+    const sample35 = {
+      currentLevel: 35,
+      remainingToNext: 1325,
+      targetLevel: 37,
+      objectiveMode: "closest",
+      routePriority: "balanced",
+      strategyMode: "strategic",
+      minRemaining: 80,
+      maxRemaining: 150,
+      maxRoutes: 8,
+      roundMode: "floor",
+      needs: officialLevelNeeds,
+      enemies: defaultEnemyPool,
+      coefRules: defaultCoefRules
+    };
+
+    const sample32 = {
+      currentLevel: 32,
+      remainingToNext: 434,
+      targetLevel: 37,
+      objectiveMode: "closest",
+      routePriority: "balanced",
+      strategyMode: "strategic",
+      minRemaining: 80,
+      maxRemaining: 150,
+      maxRoutes: 8,
+      roundMode: "floor",
+      needs: officialLevelNeeds,
+      enemies: [
+        { name: "A", baseExp: 110, enemyLevel: 38, quantity: "", unlimited: true },
+        { name: "B", baseExp: 110, enemyLevel: 39, quantity: 1, unlimited: false },
+        { name: "C", baseExp: 140, enemyLevel: 38, quantity: 2, unlimited: false }
+      ],
+      coefRules: defaultCoefRules
+    };
+
+    const refs = {};
+    let stageLibraryState = null;
+    let unitPlanState = null;
+    let lastSolverContext = null;
+    let activeSolveRunId = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      captureRefs();
+      bindEvents();
+      initializeApp();
+      runSolver();
+      registerServiceWorker();
+    });
+
+    function registerServiceWorker() {
+      if (!("serviceWorker" in navigator) || window.location.protocol === "file:") {
+        return;
+      }
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((error) => {
+          console.warn("Service worker registration failed:", error);
+        });
+      });
+    }
+
+    function captureRefs() {
+      refs.currentLevel = document.getElementById("currentLevel");
+      refs.remainingToNext = document.getElementById("remainingToNext");
+      refs.targetLevel = document.getElementById("targetLevel");
+      refs.objectiveMode = document.getElementById("objectiveMode");
+      refs.routePriority = document.getElementById("routePriority");
+      refs.strategyMode = document.getElementById("strategyMode");
+      refs.minRemaining = document.getElementById("minRemaining");
+      refs.maxRemaining = document.getElementById("maxRemaining");
+      refs.maxRoutes = document.getElementById("maxRoutes");
+      refs.roundMode = document.getElementById("roundMode");
+      refs.rangeFields = document.getElementById("rangeFields");
+      refs.coefRules = document.getElementById("coefRules");
+      refs.needTableBody = document.querySelector("#needTable tbody");
+      refs.enemyTableBody = document.querySelector("#enemyTable tbody");
+      refs.statusBox = document.getElementById("statusBox");
+      refs.summaryBox = document.getElementById("summaryBox");
+      refs.resultList = document.getElementById("resultList");
+      refs.needTemplate = document.getElementById("needRowTemplate");
+      refs.enemyTemplate = document.getElementById("enemyRowTemplate");
+      refs.solveButton = document.getElementById("solveButton");
+      refs.mobileSolveButton = document.getElementById("mobileSolveButton");
+      refs.loadSample35 = document.getElementById("loadSample35");
+      refs.loadSample32 = document.getElementById("loadSample32");
+      refs.resetButton = document.getElementById("resetButton");
+      refs.unitSelect = document.getElementById("unitSelect");
+      refs.unitNameInput = document.getElementById("unitNameInput");
+      refs.saveUnitButton = document.getElementById("saveUnitButton");
+      refs.createUnitButton = document.getElementById("createUnitButton");
+      refs.deleteUnitButton = document.getElementById("deleteUnitButton");
+      refs.clearUnitRouteButton = document.getElementById("clearUnitRouteButton");
+      refs.clearAllUnitRoutesButton = document.getElementById("clearAllUnitRoutesButton");
+      refs.unitPlanList = document.getElementById("unitPlanList");
+      refs.loadOfficialNeeds = document.getElementById("loadOfficialNeeds");
+      refs.addNeedRow = document.getElementById("addNeedRow");
+      refs.addEnemyRow = document.getElementById("addEnemyRow");
+      refs.stageSelect = document.getElementById("stageSelect");
+      refs.stageNameInput = document.getElementById("stageNameInput");
+      refs.createStageButton = document.getElementById("createStageButton");
+      refs.loadPresetStagesButton = document.getElementById("loadPresetStagesButton");
+      refs.saveStageButton = document.getElementById("saveStageButton");
+      refs.deleteStageButton = document.getElementById("deleteStageButton");
+      refs.moveStageUpButton = document.getElementById("moveStageUpButton");
+      refs.moveStageDownButton = document.getElementById("moveStageDownButton");
+      refs.planStartStageSelect = document.getElementById("planStartStageSelect");
+      refs.planEndStageSelect = document.getElementById("planEndStageSelect");
+    }
+
+    function bindEvents() {
+      refs.objectiveMode.addEventListener("change", syncObjectiveFields);
+      refs.solveButton.addEventListener("click", runSolver);
+      refs.mobileSolveButton?.addEventListener("click", runSolver);
+      refs.loadSample35.addEventListener("click", () => {
+        applySample(sample35);
+        runSolver();
+      });
+      refs.loadSample32.addEventListener("click", () => {
+        applySample(sample32);
+        runSolver();
+      });
+      refs.resetButton.addEventListener("click", () => {
+        resetToOfficialDefaults();
+      });
+      refs.unitSelect.addEventListener("change", () => {
+        unitPlanState.selectedUnitId = refs.unitSelect.value;
+        loadSelectedUnitIntoForm();
+        persistUnitPlans();
+        renderUnitPlanner();
+        runSolver();
+      });
+      refs.saveUnitButton.addEventListener("click", () => {
+        saveCurrentFormToSelectedUnit();
+        runSolver();
+      });
+      refs.createUnitButton.addEventListener("click", createUnitFromCurrentForm);
+      refs.deleteUnitButton.addEventListener("click", deleteSelectedUnit);
+      refs.clearUnitRouteButton.addEventListener("click", () => {
+        clearSelectedUnitRoute();
+        runSolver();
+      });
+      refs.clearAllUnitRoutesButton.addEventListener("click", () => {
+        clearAllUnitRoutes();
+        runSolver();
+      });
+      refs.loadOfficialNeeds.addEventListener("click", () => {
+        setNeedTable(officialLevelNeeds);
+        persistFormState();
+        setStatus("已恢复官方 1-50 升级经验表。");
+      });
+      refs.addNeedRow.addEventListener("click", () => appendNeedRow());
+      refs.addEnemyRow.addEventListener("click", () => appendEnemyRow());
+      refs.stageSelect.addEventListener("change", handleStageSwitch);
+      refs.createStageButton.addEventListener("click", createStage);
+      refs.loadPresetStagesButton.addEventListener("click", loadPresetStageLibrary);
+      refs.saveStageButton.addEventListener("click", () => saveCurrentStage(false));
+      refs.deleteStageButton.addEventListener("click", deleteCurrentStage);
+      refs.moveStageUpButton.addEventListener("click", () => moveCurrentStage(-1));
+      refs.moveStageDownButton.addEventListener("click", () => moveCurrentStage(1));
+      refs.planStartStageSelect.addEventListener("change", () => {
+        persistFormState();
+      });
+      refs.planEndStageSelect.addEventListener("change", () => {
+        persistFormState();
+      });
+      refs.needTableBody.addEventListener("click", handleTableAction);
+      refs.enemyTableBody.addEventListener("click", handleTableAction);
+      refs.enemyTableBody.addEventListener("change", (event) => {
+        if (event.target.matches('[data-role="unlimited"]')) {
+          syncEnemyQuantityField(event.target.closest("tr"));
+        }
+      });
+      refs.resultList.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-lock-route]");
+        if (button) {
+          lockRouteForSelectedUnit(Number(button.dataset.lockRoute));
+        }
+      });
+    }
+
+    function initializeApp() {
+      const savedFormState = loadFormState();
+      stageLibraryState = loadStageLibrary();
+      unitPlanState = loadUnitPlans();
+      applyFormState(savedFormState || defaultFormState);
+      renderStageOptions(savedFormState || defaultFormState);
+      renderUnitPlanner();
+      const requestedStageId = savedFormState?.selectedStageId || stageLibraryState.selectedStageId;
+      loadStageIntoEditor(findExistingStageId(requestedStageId), true);
+    }
+
+    function applySample(sample) {
+      const sampleStageId = `sample-stage-${sample.currentLevel}-${sample.targetLevel}-${sample.remainingToNext}`;
+      const sampleStageName = `样例 ${sample.currentLevel}→${sample.targetLevel}`;
+      let sampleStage = getStageById(sampleStageId);
+      if (!sampleStage) {
+        sampleStage = {
+          id: sampleStageId,
+          name: sampleStageName,
+          enemies: []
+        };
+        stageLibraryState.stages.push(sampleStage);
+      }
+      sampleStage.name = sampleStageName;
+      sampleStage.enemies = cloneEnemyRows(sample.enemies);
+      stageLibraryState.selectedStageId = sampleStageId;
+      persistStageLibrary();
+      const sampleState = {
+        ...sample,
+        selectedStageId: sampleStageId,
+        planStartStageId: sampleStageId,
+        planEndStageId: sampleStageId
+      };
+      applyFormState(sampleState);
+      renderStageOptions(sampleState);
+      loadStageIntoEditor(sampleStageId, true);
+      persistFormState();
+      setStatus(`已载入“${sampleStageName}”独立关卡，不会覆盖内置关卡库。`);
+    }
+
+    function appendNeedRow(data = { level: "", need: "" }) {
+      const row = refs.needTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector('[data-role="level"]').value = data.level;
+      row.querySelector('[data-role="need"]').value = data.need;
+      refs.needTableBody.appendChild(row);
+    }
+
+    function setNeedTable(rows) {
+      refs.needTableBody.innerHTML = "";
+      rows.forEach((row) => appendNeedRow(row));
+    }
+
+    function appendEnemyRow(data = { name: "", baseExp: "", enemyLevel: "", quantity: "", unlimited: false }) {
+      const row = refs.enemyTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector('[data-role="name"]').value = data.name;
+      row.querySelector('[data-role="baseExp"]').value = data.baseExp;
+      row.querySelector('[data-role="enemyLevel"]').value = data.enemyLevel;
+      row.querySelector('[data-role="quantity"]').value = data.quantity;
+      row.querySelector('[data-role="unlimited"]').checked = Boolean(data.unlimited);
+      refs.enemyTableBody.appendChild(row);
+      syncEnemyQuantityField(row);
+    }
+
+    function setEnemyTable(rows) {
+      refs.enemyTableBody.innerHTML = "";
+      rows.forEach((row) => appendEnemyRow(row));
+    }
+
+    function applyFormState(state) {
+      refs.currentLevel.value = state.currentLevel ?? defaultFormState.currentLevel;
+      refs.remainingToNext.value = state.remainingToNext ?? defaultFormState.remainingToNext;
+      refs.targetLevel.value = state.targetLevel ?? defaultFormState.targetLevel;
+      refs.objectiveMode.value = state.objectiveMode ?? defaultFormState.objectiveMode;
+      refs.routePriority.value = state.routePriority ?? defaultFormState.routePriority;
+      refs.strategyMode.value = state.strategyMode ?? defaultFormState.strategyMode;
+      refs.minRemaining.value = state.minRemaining ?? defaultFormState.minRemaining;
+      refs.maxRemaining.value = state.maxRemaining ?? defaultFormState.maxRemaining;
+      refs.maxRoutes.value = state.maxRoutes ?? defaultFormState.maxRoutes;
+      refs.roundMode.value = state.roundMode ?? defaultFormState.roundMode;
+      refs.coefRules.value = state.coefRules ?? defaultFormState.coefRules;
+      setNeedTable(state.needs && state.needs.length ? state.needs : officialLevelNeeds);
+      syncObjectiveFields();
+      refs.planStartStageSelect.dataset.pendingValue = state.planStartStageId ?? defaultFormState.planStartStageId;
+      refs.planEndStageSelect.dataset.pendingValue = state.planEndStageId ?? defaultFormState.planEndStageId;
+    }
+
+    function resetToOfficialDefaults() {
+      applyFormState(defaultFormState);
+      const stageId = refs.stageSelect.value || stageLibraryState.selectedStageId;
+      renderStageOptions();
+      loadStageIntoEditor(findExistingStageId(stageId), true);
+      refs.resultList.innerHTML = "";
+      refs.summaryBox.innerHTML = "";
+      refs.summaryBox.classList.add("hidden");
+      persistFormState();
+      setStatus("已恢复默认计算参数和官方经验表，已保留你保存过的关卡库。");
+    }
+
+    function createPresetStageLibrary() {
+      const stageMap = new Map();
+      presetStageRows
+        .trim()
+        .split(/\n/)
+        .forEach((line) => {
+          const [stageNoText, stageTitle, section, enemyName, levelText, baseExpText, quantityText] = line.split("\t");
+          const stageNo = Number(stageNoText);
+          const stageId = `preset-stage-${String(stageNo).padStart(2, "0")}`;
+          if (!stageMap.has(stageId)) {
+            stageMap.set(stageId, {
+              id: stageId,
+              name: stageTitle,
+              enemies: []
+            });
+          }
+          const displayName = section === "敌方单位" ? enemyName : `${enemyName}（${section}）`;
+          stageMap.get(stageId).enemies.push({
+            name: displayName,
+            baseExp: baseExpText === "" ? "" : Number(baseExpText),
+            enemyLevel: levelText === "" ? "" : Number(levelText),
+            quantity: quantityText === "" ? "" : Number(quantityText),
+            unlimited: false
+          });
+        });
+      const stages = [...stageMap.values()];
+      return {
+        selectedStageId: stages[0].id,
+        presetVersion: 1,
+        stages
+      };
+    }
+
+    function createDefaultStageLibrary() {
+      return createPresetStageLibrary();
+    }
+
+    function loadStageLibrary() {
+      const raw = localStorage.getItem(STORAGE_KEYS.stageLibrary);
+      if (!raw) {
+        return createDefaultStageLibrary();
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.stages) || parsed.stages.length === 0) {
+          return createDefaultStageLibrary();
+        }
+        if (
+          parsed.stages.length === 1 &&
+          parsed.stages[0].id === "stage-default" &&
+          parsed.stages[0].name === "默认关卡"
+        ) {
+          return createDefaultStageLibrary();
+        }
+        const stages = parsed.stages.map((stage, index) => ({
+          id: stage.id || `stage-${index + 1}`,
+          name: stage.name || `关卡 ${index + 1}`,
+          enemies: Array.isArray(stage.enemies) ? cloneEnemyRows(stage.enemies) : []
+        }));
+        const selectedStageId = stages.some((stage) => stage.id === parsed.selectedStageId)
+          ? parsed.selectedStageId
+          : stages[0].id;
+        return { selectedStageId, stages };
+      } catch (error) {
+        return createDefaultStageLibrary();
+      }
+    }
+
+    function persistStageLibrary() {
+      localStorage.setItem(STORAGE_KEYS.stageLibrary, JSON.stringify(stageLibraryState));
+    }
+
+    function loadFormState() {
+      const raw = localStorage.getItem(STORAGE_KEYS.formState);
+      if (!raw) {
+        return null;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          ...defaultFormState,
+          ...parsed,
+          routePriority: ["efficient", "balanced", "closest"].includes(parsed.routePriority) ? parsed.routePriority : defaultFormState.routePriority,
+          strategyMode: ["strategic", "neutral"].includes(parsed.strategyMode) ? parsed.strategyMode : defaultFormState.strategyMode,
+          needs: Array.isArray(parsed.needs) && parsed.needs.length ? parsed.needs : officialLevelNeeds,
+          coefRules: parsed.coefRules || defaultCoefRules
+        };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function persistFormState() {
+      const state = {
+        currentLevel: refs.currentLevel.value,
+        remainingToNext: refs.remainingToNext.value,
+        targetLevel: refs.targetLevel.value,
+        objectiveMode: refs.objectiveMode.value,
+        routePriority: refs.routePriority.value,
+        strategyMode: refs.strategyMode.value,
+        minRemaining: refs.minRemaining.value,
+        maxRemaining: refs.maxRemaining.value,
+        maxRoutes: refs.maxRoutes.value,
+        roundMode: refs.roundMode.value,
+        coefRules: refs.coefRules.value,
+        needs: readNeedRowsSnapshot(),
+        selectedStageId: refs.stageSelect.value || stageLibraryState.selectedStageId,
+        planStartStageId: refs.planStartStageSelect.value || refs.stageSelect.value || stageLibraryState.selectedStageId,
+        planEndStageId: refs.planEndStageSelect.value || refs.stageSelect.value || stageLibraryState.selectedStageId
+      };
+      localStorage.setItem(STORAGE_KEYS.formState, JSON.stringify(state));
+    }
+
+    function createDefaultUnitPlans() {
+      return {
+        selectedUnitId: "unit-1",
+        units: [
+          {
+            id: "unit-1",
+            name: "机体 1",
+            currentLevel: defaultFormState.currentLevel,
+            remainingToNext: defaultFormState.remainingToNext,
+            targetLevel: defaultFormState.targetLevel,
+            lockedRoute: null
+          }
+        ]
+      };
+    }
+
+    function loadUnitPlans() {
+      const raw = localStorage.getItem(STORAGE_KEYS.unitPlans);
+      if (!raw) {
+        return createDefaultUnitPlans();
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.units) || parsed.units.length === 0) {
+          return createDefaultUnitPlans();
+        }
+        const units = parsed.units.map((unit, index) => ({
+          id: unit.id || `unit-${index + 1}`,
+          name: unit.name || `机体 ${index + 1}`,
+          currentLevel: unit.currentLevel || defaultFormState.currentLevel,
+          remainingToNext: unit.remainingToNext || defaultFormState.remainingToNext,
+          targetLevel: unit.targetLevel || defaultFormState.targetLevel,
+          lockedRoute: unit.lockedRoute || null
+        }));
+        const selectedUnitId = units.some((unit) => unit.id === parsed.selectedUnitId)
+          ? parsed.selectedUnitId
+          : units[0].id;
+        return { selectedUnitId, units };
+      } catch (error) {
+        return createDefaultUnitPlans();
+      }
+    }
+
+    function persistUnitPlans() {
+      localStorage.setItem(STORAGE_KEYS.unitPlans, JSON.stringify(unitPlanState));
+    }
+
+    function getSelectedUnit() {
+      return unitPlanState.units.find((unit) => unit.id === unitPlanState.selectedUnitId) || unitPlanState.units[0];
+    }
+
+    function renderUnitPlanner() {
+      const optionHtml = unitPlanState.units
+        .map((unit) => `<option value="${escapeAttribute(unit.id)}">${escapeHtml(unit.name)}</option>`)
+        .join("");
+      refs.unitSelect.innerHTML = optionHtml;
+      refs.unitSelect.value = getSelectedUnit().id;
+      refs.unitNameInput.value = getSelectedUnit().name;
+      refs.unitPlanList.innerHTML = unitPlanState.units.map((unit) => {
+        const isActive = unit.id === unitPlanState.selectedUnitId;
+        const route = unit.lockedRoute;
+        const lockHtml = route
+          ? `<div class="unit-lock">已锁定：${escapeHtml(route.pathText)}<br>消耗 ${route.kills} 个敌机，最终 ${route.finalLevel} 级，还差 ${route.remainingToNext} 经验。</div>`
+          : `<div class="unit-lock">未锁定路线。该机体规划时会避开其他机体已锁定的敌机。</div>`;
+        return `
+          <div class="unit-card ${isActive ? "active" : ""}">
+            <div class="unit-card-head">
+              <div class="unit-name">${escapeHtml(unit.name)}</div>
+              ${isActive ? '<span class="badge">当前</span>' : ""}
+            </div>
+            <div class="unit-meta">${unit.currentLevel} 级，距离下一级 ${unit.remainingToNext} 经验，目标 ${unit.targetLevel} 级</div>
+            ${lockHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function loadSelectedUnitIntoForm() {
+      const unit = getSelectedUnit();
+      refs.currentLevel.value = unit.currentLevel;
+      refs.remainingToNext.value = unit.remainingToNext;
+      refs.targetLevel.value = unit.targetLevel;
+      refs.unitNameInput.value = unit.name;
+      persistFormState();
+    }
+
+    function saveCurrentFormToSelectedUnit() {
+      const unit = getSelectedUnit();
+      unit.name = refs.unitNameInput.value.trim() || unit.name;
+      unit.currentLevel = parseInt(refs.currentLevel.value, 10) || unit.currentLevel;
+      unit.remainingToNext = parseInt(refs.remainingToNext.value, 10) || unit.remainingToNext;
+      unit.targetLevel = parseInt(refs.targetLevel.value, 10) || unit.targetLevel;
+      persistUnitPlans();
+      renderUnitPlanner();
+      setStatus(`已把上方状态保存到“${unit.name}”。`, "success");
+    }
+
+    function createUnitFromCurrentForm() {
+      const unit = {
+        id: `unit-${Date.now()}`,
+        name: refs.unitNameInput.value.trim() || `机体 ${unitPlanState.units.length + 1}`,
+        currentLevel: parseInt(refs.currentLevel.value, 10) || defaultFormState.currentLevel,
+        remainingToNext: parseInt(refs.remainingToNext.value, 10) || defaultFormState.remainingToNext,
+        targetLevel: parseInt(refs.targetLevel.value, 10) || defaultFormState.targetLevel,
+        lockedRoute: null
+      };
+      unitPlanState.units.push(unit);
+      unitPlanState.selectedUnitId = unit.id;
+      persistUnitPlans();
+      renderUnitPlanner();
+      setStatus(`已新增“${unit.name}”。`, "success");
+      runSolver();
+    }
+
+    function deleteSelectedUnit() {
+      if (unitPlanState.units.length <= 1) {
+        setStatus("至少需要保留一个机体。", "error");
+        return;
+      }
+      const unit = getSelectedUnit();
+      unitPlanState.units = unitPlanState.units.filter((item) => item.id !== unit.id);
+      unitPlanState.selectedUnitId = unitPlanState.units[0].id;
+      persistUnitPlans();
+      renderUnitPlanner();
+      loadSelectedUnitIntoForm();
+      setStatus(`已删除“${unit.name}”。`, "success");
+      runSolver();
+    }
+
+    function clearSelectedUnitRoute() {
+      const unit = getSelectedUnit();
+      unit.lockedRoute = null;
+      persistUnitPlans();
+      renderUnitPlanner();
+      setStatus(`已清除“${unit.name}”的锁定路线。`, "success");
+    }
+
+    function clearAllUnitRoutes() {
+      unitPlanState.units.forEach((unit) => {
+        unit.lockedRoute = null;
+      });
+      persistUnitPlans();
+      renderUnitPlanner();
+      setStatus("已清空全部机体的锁定路线。", "success");
+    }
+
+    function lockRouteForSelectedUnit(routeIndex) {
+      if (!lastSolverContext) {
+        setStatus("当前没有可锁定的路线。", "error");
+        return;
+      }
+      const route = lastSolverContext.result.displayRoutes[routeIndex];
+      if (!route) {
+        setStatus("路线索引无效，无法锁定。", "error");
+        return;
+      }
+      saveCurrentFormToSelectedUnit();
+      const unit = getSelectedUnit();
+      unit.lockedRoute = {
+        pathText: formatRoutePath(route),
+        kills: route.kills,
+        finalLevel: route.level,
+        finalProgress: route.progress,
+        remainingToNext: route.remainingToNext,
+        steps: route.steps.map((step) => ({
+          stageId: step.stageId,
+          enemyId: step.enemyId,
+          reservationKey: step.reservationKey,
+          enemyIndex: step.enemyIndex,
+          stageName: step.stageName,
+          enemyName: step.enemyName,
+          enemyLevel: step.enemyLevel,
+          baseExp: step.baseExp,
+          unlimited: step.unlimited
+        }))
+      };
+      persistUnitPlans();
+      renderUnitPlanner();
+      setStatus(`已把路线锁定给“${unit.name}”。其他机体计算时会扣除这条路线消耗的有限敌机。`, "success");
+    }
+
+    function getLockedRouteReservations(excludeUnitId) {
+      const reservations = [];
+      if (!unitPlanState || !Array.isArray(unitPlanState.units)) {
+        return reservations;
+      }
+      unitPlanState.units.forEach((unit) => {
+        if (unit.id === excludeUnitId || !unit.lockedRoute) {
+          return;
+        }
+        unit.lockedRoute.steps.forEach((step) => {
+          if (step.unlimited === true) {
+            return;
+          }
+          const reservation = createLockedEnemyReservation(step, unit);
+          if (reservation) {
+            reservations.push(reservation);
+          }
+        });
+      });
+      return reservations;
+    }
+
+    function createLockedEnemyReservation(step, unit) {
+      const enemyLevel = parseOptionalInteger(step.enemyLevel);
+      const baseExp = parseOptionalInteger(step.baseExp);
+      const enemyIndex = parseOptionalInteger(step.enemyIndex);
+      if (!step.enemyId && !step.reservationKey && !step.stageId) {
+        return null;
+      }
+      return {
+        unitId: unit.id,
+        unitName: unit.name,
+        enemyId: step.enemyId || "",
+        reservationKey: step.reservationKey || "",
+        stageId: step.stageId || "",
+        enemyIndex,
+        enemyName: String(step.enemyName || "").trim(),
+        enemyLevel,
+        baseExp,
+        used: false
+      };
+    }
+
+    function parseOptionalInteger(value) {
+      if (value === "" || value === null || value === undefined) {
+        return null;
+      }
+      const parsed = parseInt(value, 10);
+      return Number.isInteger(parsed) ? parsed : null;
+    }
+
+    function takeLockedReservationsForEnemy(reservations, enemy, limit) {
+      let taken = 0;
+      for (const reservation of reservations) {
+        if (taken >= limit) {
+          break;
+        }
+        if (!reservation.used && reservationMatchesEnemy(reservation, enemy)) {
+          reservation.used = true;
+          taken += 1;
+        }
+      }
+      return taken;
+    }
+
+    function reservationMatchesEnemy(reservation, enemy) {
+      if (reservation.enemyId && reservation.enemyId === enemy.id) {
+        return true;
+      }
+      if (reservation.reservationKey && reservation.reservationKey === enemy.reservationKey) {
+        return true;
+      }
+      if (reservation.stageId !== enemy.stageId) {
+        return false;
+      }
+      if (reservation.enemyName && normalizeReservationText(reservation.enemyName) !== normalizeReservationText(enemy.name)) {
+        return false;
+      }
+      if (reservation.enemyLevel !== null && reservation.enemyLevel !== enemy.enemyLevel) {
+        return false;
+      }
+      if (reservation.baseExp !== null && reservation.baseExp !== enemy.baseExp) {
+        return false;
+      }
+      return Boolean(reservation.enemyName || reservation.enemyLevel !== null || reservation.baseExp !== null);
+    }
+
+    function normalizeReservationText(value) {
+      return String(value || "").trim().replace(/\s+/g, "");
+    }
+
+    function renderStageOptions(preferredState = null) {
+      const optionHtml = stageLibraryState.stages
+        .map((stage) => `<option value="${escapeAttribute(stage.id)}">${escapeHtml(stage.name)}</option>`)
+        .join("");
+      refs.stageSelect.innerHTML = optionHtml;
+      refs.planStartStageSelect.innerHTML = optionHtml;
+      refs.planEndStageSelect.innerHTML = optionHtml;
+
+      refs.stageSelect.value = findExistingStageId(stageLibraryState.selectedStageId);
+      const startStageId = findExistingStageId(
+        preferredState?.planStartStageId || refs.planStartStageSelect.dataset.pendingValue || stageLibraryState.selectedStageId
+      );
+      const endStageId = findExistingStageId(
+        preferredState?.planEndStageId || refs.planEndStageSelect.dataset.pendingValue || startStageId
+      );
+      refs.planStartStageSelect.value = startStageId;
+      refs.planEndStageSelect.value = endStageId;
+      delete refs.planStartStageSelect.dataset.pendingValue;
+      delete refs.planEndStageSelect.dataset.pendingValue;
+    }
+
+    function findExistingStageId(stageId) {
+      if (stageLibraryState.stages.some((stage) => stage.id === stageId)) {
+        return stageId;
+      }
+      return stageLibraryState.stages[0].id;
+    }
+
+    function getStageById(stageId) {
+      return stageLibraryState.stages.find((stage) => stage.id === stageId) || null;
+    }
+
+    function loadStageIntoEditor(stageId, silent = false) {
+      const stage = getStageById(findExistingStageId(stageId));
+      if (!stage) {
+        return;
+      }
+      stageLibraryState.selectedStageId = stage.id;
+      refs.stageSelect.value = stage.id;
+      refs.stageNameInput.value = stage.name;
+      setEnemyTable(stage.enemies);
+      persistStageLibrary();
+      persistFormState();
+      if (!silent) {
+        setStatus(`已载入关卡“${stage.name}”的怪物池。`);
+      }
+    }
+
+    function handleStageSwitch() {
+      loadStageIntoEditor(refs.stageSelect.value);
+    }
+
+    function createStage() {
+      const name = refs.stageNameInput.value.trim() || generateStageName();
+      const newStage = {
+        id: `stage-${Date.now()}`,
+        name,
+        enemies: []
+      };
+      stageLibraryState.stages.push(newStage);
+      stageLibraryState.selectedStageId = newStage.id;
+      persistStageLibrary();
+      renderStageOptions(loadFormState());
+      loadStageIntoEditor(newStage.id, true);
+      setEnemyTable([]);
+      refs.stageNameInput.value = name;
+      persistFormState();
+      setStatus(`已新建空关卡“${name}”。现在可以给它添加可击杀怪并点击保存。`, "success");
+    }
+
+    function loadPresetStageLibrary() {
+      stageLibraryState = createPresetStageLibrary();
+      persistStageLibrary();
+      renderStageOptions({ planStartStageId: stageLibraryState.selectedStageId, planEndStageId: stageLibraryState.selectedStageId });
+      loadStageIntoEditor(stageLibraryState.selectedStageId, true);
+      persistFormState();
+      setStatus("已载入内置 1-26 关敌机库。空白等级/固有经验的数据会保留，规划时会自动跳过，等你补完后即可参与计算。", "success");
+    }
+
+    function saveCurrentStage(silent = false) {
+      const stageId = refs.stageSelect.value || stageLibraryState.selectedStageId;
+      const stage = getStageById(stageId);
+      if (!stage) {
+        if (!silent) {
+          setStatus("当前没有可保存的关卡。", "error");
+        }
+        return;
+      }
+      const name = refs.stageNameInput.value.trim() || stage.name || generateStageName();
+      stage.name = name;
+      stage.enemies = cloneEnemyRows(readEnemyRowsForStorage(false));
+      stageLibraryState.selectedStageId = stage.id;
+      persistStageLibrary();
+      renderStageOptions(loadFormState());
+      refs.stageSelect.value = stage.id;
+      refs.stageNameInput.value = name;
+      persistFormState();
+      if (!silent) {
+        setStatus(`已保存关卡“${name}”的怪物池。`, "success");
+      }
+    }
+
+    function deleteCurrentStage() {
+      const stageId = refs.stageSelect.value || stageLibraryState.selectedStageId;
+      const stage = getStageById(stageId);
+      if (!stage) {
+        setStatus("当前没有可删除的关卡。", "error");
+        return;
+      }
+      stageLibraryState.stages = stageLibraryState.stages.filter((item) => item.id !== stageId);
+      if (stageLibraryState.stages.length === 0) {
+        stageLibraryState = createDefaultStageLibrary();
+      } else {
+        stageLibraryState.selectedStageId = stageLibraryState.stages[0].id;
+      }
+      persistStageLibrary();
+      renderStageOptions(loadFormState());
+      loadStageIntoEditor(stageLibraryState.selectedStageId, true);
+      setStatus(`已删除关卡“${stage.name}”。`, "success");
+    }
+
+    function moveCurrentStage(direction) {
+      const stageId = refs.stageSelect.value || stageLibraryState.selectedStageId;
+      const index = stageLibraryState.stages.findIndex((stage) => stage.id === stageId);
+      if (index === -1) {
+        setStatus("当前没有可移动的关卡。", "error");
+        return;
+      }
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= stageLibraryState.stages.length) {
+        setStatus("该关卡已经在边界位置，不能继续移动。", "error");
+        return;
+      }
+      const [stage] = stageLibraryState.stages.splice(index, 1);
+      stageLibraryState.stages.splice(targetIndex, 0, stage);
+      stageLibraryState.selectedStageId = stage.id;
+      persistStageLibrary();
+      renderStageOptions(loadFormState());
+      loadStageIntoEditor(stage.id, true);
+      setStatus(`已调整关卡“${stage.name}”的位置。`, "success");
+    }
+
+    function generateStageName() {
+      return `关卡 ${stageLibraryState.stages.length + 1}`;
+    }
+
+    function readNeedRowsSnapshot() {
+      return [...refs.needTableBody.querySelectorAll("tr")]
+        .map((row) => ({
+          level: row.querySelector('[data-role="level"]').value.trim(),
+          need: row.querySelector('[data-role="need"]').value.trim()
+        }))
+        .filter((row) => row.level && row.need)
+        .map((row) => ({ level: Number(row.level), need: Number(row.need) }));
+    }
+
+    function readEnemyRowsSnapshot() {
+      return [...refs.enemyTableBody.querySelectorAll("tr")].map((row) => {
+        const unlimited = row.querySelector('[data-role="unlimited"]').checked;
+        return {
+          name: row.querySelector('[data-role="name"]').value.trim(),
+          baseExp: row.querySelector('[data-role="baseExp"]').value.trim(),
+          enemyLevel: row.querySelector('[data-role="enemyLevel"]').value.trim(),
+          quantity: unlimited ? "" : row.querySelector('[data-role="quantity"]').value.trim(),
+          unlimited
+        };
+      }).filter((row) => row.name || row.baseExp || row.enemyLevel || row.quantity);
+    }
+
+    function cloneEnemyRows(rows) {
+      return rows.map((row) => ({ ...row }));
+    }
+
+    function readEnemyRowsForStorage(requireAtLeastOne = false) {
+      const rows = readEnemyRowsSnapshot().map((row) => {
+        const name = String(row.name ?? "").trim();
+        if (!name) {
+          throw new Error("怪物池存在缺少名称的行。");
+        }
+        const baseExp = row.baseExp === "" ? "" : Number(row.baseExp);
+        const enemyLevel = row.enemyLevel === "" ? "" : Number(row.enemyLevel);
+        const quantity = row.unlimited ? "" : (row.quantity === "" ? "" : Number(row.quantity));
+        if (baseExp !== "" && (!Number.isInteger(baseExp) || baseExp < 0)) {
+          throw new Error(`怪物池中 ${name} 的固有经验必须是非负整数，或留空待补。`);
+        }
+        if (enemyLevel !== "" && (!Number.isInteger(enemyLevel) || enemyLevel < 1)) {
+          throw new Error(`怪物池中 ${name} 的等级必须是正整数，或留空待补。`);
+        }
+        if (!row.unlimited && quantity !== "" && (!Number.isInteger(quantity) || quantity < 0)) {
+          throw new Error(`怪物池中 ${name} 的数量必须是非负整数，或勾选“无限”。`);
+        }
+        return {
+          name,
+          baseExp,
+          enemyLevel,
+          quantity,
+          unlimited: Boolean(row.unlimited)
+        };
+      });
+      if (requireAtLeastOne && rows.length === 0) {
+        throw new Error("怪物池至少需要配置一种怪物。");
+      }
+      return rows;
+    }
+
+    function normalizeEnemyRecords(records, { requireAtLeastOne = true, sourceLabel = "怪物池" } = {}) {
+      const enemies = records.map((row, index) => {
+        const name = String(row.name ?? "").trim();
+        const baseExp = parseInt(row.baseExp, 10);
+        const enemyLevel = parseInt(row.enemyLevel, 10);
+        const unlimited = Boolean(row.unlimited);
+        const quantityText = String(row.quantity ?? "").trim();
+        if (!name) {
+          throw new Error(`${sourceLabel}第 ${index + 1} 行缺少名称。`);
+        }
+        if (!Number.isInteger(baseExp) || baseExp < 1) {
+          throw new Error(`${sourceLabel}中怪物 ${name} 的基础经验必须是正整数。`);
+        }
+        if (!Number.isInteger(enemyLevel) || enemyLevel < 1) {
+          throw new Error(`${sourceLabel}中怪物 ${name} 的等级必须是正整数。`);
+        }
+        let quantity = Infinity;
+        if (!unlimited) {
+          quantity = parseInt(quantityText, 10);
+          if (!Number.isInteger(quantity) || quantity < 0) {
+            throw new Error(`${sourceLabel}中怪物 ${name} 的数量必须是非负整数，或勾选“无限”。`);
+          }
+        }
+        return {
+          name,
+          baseExp,
+          enemyLevel,
+          unlimited,
+          quantity
+        };
+      });
+
+      if (requireAtLeastOne && enemies.length === 0) {
+        throw new Error(`${sourceLabel}至少需要配置一种怪物。`);
+      }
+      return enemies;
+    }
+
+    function syncObjectiveFields() {
+      const showRange = refs.objectiveMode.value === "range";
+      refs.rangeFields.classList.toggle("hidden", !showRange);
+    }
+
+    function syncEnemyQuantityField(row) {
+      const unlimitedInput = row.querySelector('[data-role="unlimited"]');
+      const quantityInput = row.querySelector('[data-role="quantity"]');
+      quantityInput.disabled = unlimitedInput.checked;
+      if (unlimitedInput.checked) {
+        quantityInput.value = "";
+      }
+    }
+
+    function handleTableAction(event) {
+      const button = event.target.closest("[data-action]");
+      if (!button) {
+        return;
+      }
+      if (button.dataset.action === "remove-row") {
+        button.closest("tr").remove();
+      }
+    }
+
+    async function runSolver() {
+      const runId = activeSolveRunId + 1;
+      activeSolveRunId = runId;
+      try {
+        saveCurrentStage(true);
+        const config = readConfig();
+        persistFormState();
+        setSolveButtonsDisabled(true);
+        setStatus("正在计算路线，请稍候。大跨度规划会分片执行，页面不会锁死。");
+        await waitForPaint();
+        const result = await solveRoutes(config, {
+          shouldContinue: () => runId === activeSolveRunId
+        });
+        if (runId !== activeSolveRunId) {
+          return;
+        }
+        renderResult(result, config);
+      } catch (error) {
+        if (runId !== activeSolveRunId) {
+          return;
+        }
+        lastSolverContext = null;
+        refs.summaryBox.innerHTML = "";
+        refs.summaryBox.classList.add("hidden");
+        refs.resultList.innerHTML = "";
+        setStatus(error.message, "error");
+      } finally {
+        if (runId === activeSolveRunId) {
+          setSolveButtonsDisabled(false);
+        }
+      }
+    }
+
+    function setSolveButtonsDisabled(disabled) {
+      refs.solveButton.disabled = disabled;
+      if (refs.mobileSolveButton) {
+        refs.mobileSolveButton.disabled = disabled;
+      }
+    }
+
+    function waitForPaint() {
+      return new Promise((resolve) => {
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(() => resolve());
+          return;
+        }
+        const timer = typeof window !== "undefined" ? window.setTimeout : setTimeout;
+        timer(resolve, 0);
+      });
+    }
+
+    function readConfig() {
+      const currentLevel = parseInt(refs.currentLevel.value, 10);
+      const remainingToNext = parseInt(refs.remainingToNext.value, 10);
+      const targetLevel = parseInt(refs.targetLevel.value, 10);
+      const maxRoutes = parseInt(refs.maxRoutes.value, 10);
+      const objectiveMode = refs.objectiveMode.value;
+      const routePriority = refs.routePriority.value;
+      const strategyMode = refs.strategyMode.value;
+      const minRemaining = parseInt(refs.minRemaining.value, 10);
+      const maxRemaining = parseInt(refs.maxRemaining.value, 10);
+      const roundMode = refs.roundMode.value;
+      const levelNeedMap = readLevelNeedMap();
+      const planningData = readPlanningStages();
+      const planStages = planningData.stages;
+      const coefficientRules = parseCoefficientRules(refs.coefRules.value);
+
+      if (!Number.isInteger(currentLevel) || currentLevel < 1) {
+        throw new Error("当前等级必须是大于 0 的整数。");
+      }
+      if (!Number.isInteger(targetLevel) || targetLevel < currentLevel) {
+        throw new Error("目标等级必须大于或等于当前等级。");
+      }
+      if (!Number.isInteger(maxRoutes) || maxRoutes < 1 || maxRoutes > 20) {
+        throw new Error("展示路线条数必须在 1 到 20 之间。");
+      }
+      if (!["efficient", "balanced", "closest"].includes(routePriority)) {
+        throw new Error("路线排序偏好无效，请重新选择。");
+      }
+      if (!["strategic", "neutral"].includes(strategyMode)) {
+        throw new Error("击杀策略无效，请重新选择。");
+      }
+      if (!levelNeedMap.has(currentLevel)) {
+        throw new Error(`升级经验表里缺少 ${currentLevel} 级数据。`);
+      }
+      if (!levelNeedMap.has(targetLevel)) {
+        throw new Error(`升级经验表里缺少 ${targetLevel} 级数据，因此无法判断离 ${targetLevel + 1} 级还差多少。`);
+      }
+
+      for (let level = currentLevel; level <= targetLevel; level += 1) {
+        if (!levelNeedMap.has(level)) {
+          throw new Error(`升级经验表必须连续覆盖 ${currentLevel} 到 ${targetLevel} 级，当前缺少 ${level} 级。`);
+        }
+      }
+
+      const currentNeed = levelNeedMap.get(currentLevel);
+      if (!Number.isInteger(remainingToNext) || remainingToNext < 1 || remainingToNext > currentNeed) {
+        throw new Error(`当前剩余升级经验必须在 1 到 ${currentNeed} 之间。`);
+      }
+
+      if (objectiveMode === "range") {
+        if (!Number.isInteger(minRemaining) || !Number.isInteger(maxRemaining) || minRemaining < 0 || maxRemaining < 0) {
+          throw new Error("剩余经验区间必须是非负整数。");
+        }
+        if (minRemaining > maxRemaining) {
+          throw new Error("剩余经验下限不能大于上限。");
+        }
+      }
+
+      return {
+        currentLevel,
+        remainingToNext,
+        targetLevel,
+        currentNeed,
+        currentProgress: currentNeed - remainingToNext,
+        maxRoutes,
+        objectiveMode,
+        routePriority,
+        strategyMode,
+        minRemaining,
+        maxRemaining,
+        roundMode,
+        levelNeedMap,
+        planStages,
+        coefficientRules,
+        planningWarnings: planningData.warnings,
+        reservedKills: planningData.reservedKills
+      };
+    }
+
+    function readLevelNeedMap() {
+      const map = new Map();
+      [...refs.needTableBody.querySelectorAll("tr")].forEach((row, index) => {
+        const levelValue = row.querySelector('[data-role="level"]').value.trim();
+        const needValue = row.querySelector('[data-role="need"]').value.trim();
+        if (!levelValue && !needValue) {
+          return;
+        }
+        const level = parseInt(levelValue, 10);
+        const need = parseInt(needValue, 10);
+        if (!Number.isInteger(level) || level < 1 || !Number.isInteger(need) || need < 1) {
+          throw new Error(`升级经验表第 ${index + 1} 行有无效数据。`);
+        }
+        map.set(level, need);
+      });
+      if (map.size === 0) {
+        throw new Error("升级经验表不能为空。");
+      }
+      return new Map([...map.entries()].sort((a, b) => a[0] - b[0]));
+    }
+
+    function readPlanningStages() {
+      const startStageId = refs.planStartStageSelect.value;
+      const endStageId = refs.planEndStageSelect.value;
+      const startIndex = stageLibraryState.stages.findIndex((stage) => stage.id === startStageId);
+      const endIndex = stageLibraryState.stages.findIndex((stage) => stage.id === endStageId);
+      const reservations = getLockedRouteReservations(unitPlanState?.selectedUnitId);
+      const warnings = [];
+      let reservedKills = 0;
+
+      if (startIndex === -1 || endIndex === -1) {
+        throw new Error("计算关卡范围无效，请重新选择起始关卡和结束关卡。");
+      }
+      if (startIndex > endIndex) {
+        throw new Error("起始关卡不能排在结束关卡之后。可以用“上移/下移关卡”调整关卡顺序。");
+      }
+
+      const stages = stageLibraryState.stages.slice(startIndex, endIndex + 1).map((stage) => {
+        const enemies = [];
+        (stage.enemies || []).forEach((record, index) => {
+          const enemy = normalizePlanningEnemyRecord(record, stage, index, warnings);
+          if (!enemy) {
+            return;
+          }
+          if (!enemy.unlimited) {
+            const reserved = takeLockedReservationsForEnemy(reservations, enemy, enemy.quantity);
+            if (reserved > 0) {
+              const deducted = Math.min(enemy.quantity, reserved);
+              enemy.quantity -= deducted;
+              enemy.reserved = deducted;
+              reservedKills += deducted;
+            }
+          }
+          if (enemy.unlimited || enemy.quantity > 0) {
+            enemies.push(enemy);
+          }
+        });
+        return {
+          id: stage.id,
+          name: stage.name,
+          enemies
+        };
+      });
+
+      const stageIdsInRange = new Set(stages.map((stage) => stage.id));
+      const unmatchedReservations = reservations.filter((reservation) => {
+        return !reservation.used && reservation.stageId && stageIdsInRange.has(reservation.stageId);
+      });
+      if (unmatchedReservations.length > 0) {
+        warnings.push(`有 ${unmatchedReservations.length} 个已锁定敌机未能匹配到当前关卡数据，可能是关卡怪物被改名、调序或改成了无限数量。`);
+      }
+
+      const enemyCount = stages.reduce((total, stage) => total + stage.enemies.length, 0);
+      if (enemyCount === 0) {
+        throw new Error("计算关卡范围内没有可击杀怪物。");
+      }
+      return { stages, warnings, reservedKills };
+    }
+
+    function normalizePlanningEnemyRecord(record, stage, index, warnings) {
+      const name = String(record.name ?? "").trim();
+      const baseExpText = String(record.baseExp ?? "").trim();
+      const enemyLevelText = String(record.enemyLevel ?? "").trim();
+      const quantityText = String(record.quantity ?? "").trim();
+      const unlimited = Boolean(record.unlimited) || quantityText === "";
+      const rowLabel = `关卡“${stage.name}”第 ${index + 1} 行`;
+
+      if (!name) {
+        warnings.push(`${rowLabel}缺少名称，已跳过。`);
+        return null;
+      }
+      if (!baseExpText || !enemyLevelText) {
+        warnings.push(`${stage.name} / ${name} 缺少${!baseExpText && !enemyLevelText ? "固有经验和等级" : (!baseExpText ? "固有经验" : "等级")}，已跳过。`);
+        return null;
+      }
+
+      const baseExp = parseInt(baseExpText, 10);
+      const enemyLevel = parseInt(enemyLevelText, 10);
+      if (!Number.isInteger(baseExp) || baseExp < 0) {
+        warnings.push(`${stage.name} / ${name} 的固有经验无效，已跳过。`);
+        return null;
+      }
+      if (!Number.isInteger(enemyLevel) || enemyLevel < 1) {
+        warnings.push(`${stage.name} / ${name} 的等级无效，已跳过。`);
+        return null;
+      }
+
+      let quantity = Infinity;
+      if (!unlimited) {
+        quantity = parseInt(quantityText, 10);
+        if (!Number.isInteger(quantity) || quantity < 0) {
+          warnings.push(`${stage.name} / ${name} 的数量无效，已跳过。`);
+          return null;
+        }
+      }
+
+      const enemyIndex = index;
+      const id = `${stage.id}-enemy-${enemyIndex + 1}`;
+      return {
+        id,
+        reservationKey: makeEnemyReservationKey(stage.id, enemyIndex, name, baseExp, enemyLevel),
+        enemyIndex,
+        stageId: stage.id,
+        stageName: stage.name,
+        name,
+        baseExp,
+        enemyLevel,
+        unlimited,
+        quantity,
+        reserved: 0
+      };
+    }
+
+    function makeEnemyReservationKey(stageId, enemyIndex, name, baseExp, enemyLevel) {
+      return [
+        stageId,
+        enemyIndex + 1,
+        normalizeReservationText(name),
+        baseExp,
+        enemyLevel
+      ].join("::");
+    }
+
+    function parseCoefficientRules(text) {
+      const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"));
+
+      if (lines.length === 0) {
+        throw new Error("等级差系数规则不能为空。");
+      }
+
+      return lines.map((line, index) => {
+        const parts = line.split(",").map((part) => part.trim());
+        if (parts.length !== 2) {
+          throw new Error(`系数规则第 ${index + 1} 行格式错误，应为“条件,系数”。`);
+        }
+        const [condition, effectText] = parts;
+        const effect = parseRuleEffect(effectText, index);
+
+        if (/^-?\d+$/.test(condition)) {
+          return { type: "exact", value: parseInt(condition, 10), ...effect };
+        }
+        const matcher = condition.match(/^(>=|<=|>|<)\s*(-?\d+)$/);
+        if (!matcher) {
+          throw new Error(`系数规则第 ${index + 1} 行条件无法识别：${condition}`);
+        }
+        return {
+          type: matcher[1],
+          value: parseInt(matcher[2], 10),
+          ...effect
+        };
+      });
+    }
+
+    function parseRuleEffect(effectText, index) {
+      const fixedMatch = effectText.match(/^(?:exp|fixed)\s*:\s*(.+)$/i);
+      if (fixedMatch) {
+        const fixedValue = parseNumericToken(fixedMatch[1]);
+        if (!Number.isFinite(fixedValue)) {
+          throw new Error(`系数规则第 ${index + 1} 行的固定经验不是有效数字。`);
+        }
+        return {
+          effectType: "fixedExp",
+          effectValue: fixedValue,
+          effectLabel: `固定 ${fixedValue}`
+        };
+      }
+      const multiplier = parseNumericToken(effectText);
+      if (!Number.isFinite(multiplier)) {
+        throw new Error(`系数规则第 ${index + 1} 行的系数不是有效数字。`);
+      }
+      return {
+        effectType: "multiplier",
+        effectValue: multiplier,
+        effectLabel: effectText
+      };
+    }
+
+    function parseNumericToken(text) {
+      const trimmed = String(text).trim();
+      if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+        return Number(trimmed);
+      }
+      const fraction = trimmed.match(/^(-?\d+)\s*\/\s*(-?\d+)$/);
+      if (fraction) {
+        const denominator = Number(fraction[2]);
+        if (denominator === 0) {
+          return NaN;
+        }
+        return Number(fraction[1]) / denominator;
+      }
+      return NaN;
+    }
+
+    function resolveCoefficientRule(diff, rules) {
+      const exactMatch = rules.find((rule) => rule.type === "exact" && rule.value === diff);
+      if (exactMatch) {
+        return exactMatch;
+      }
+      for (const rule of rules) {
+        if (rule.type === ">=" && diff >= rule.value) {
+          return rule;
+        }
+        if (rule.type === "<=" && diff <= rule.value) {
+          return rule;
+        }
+        if (rule.type === ">" && diff > rule.value) {
+          return rule;
+        }
+        if (rule.type === "<" && diff < rule.value) {
+          return rule;
+        }
+      }
+      return null;
+    }
+
+    function applyRounding(value, roundMode) {
+      if (roundMode === "round") {
+        return Math.round(value);
+      }
+      if (roundMode === "ceil") {
+        return Math.ceil(value);
+      }
+      return Math.floor(value);
+    }
+
+    function computeGain(enemy, currentLevel, rules, roundMode) {
+      const diff = enemy.enemyLevel - currentLevel;
+      const rule = resolveCoefficientRule(diff, rules);
+      if (rule === null) {
+        return null;
+      }
+      if (rule.effectType === "fixedExp") {
+        return {
+          gain: rule.effectValue,
+          diff,
+          coefficient: rule.effectLabel
+        };
+      }
+      const raw = enemy.baseExp * (enemy.enemyLevel / 5) * rule.effectValue;
+      return {
+        gain: applyRounding(raw, roundMode),
+        diff,
+        coefficient: rule.effectLabel
+      };
+    }
+
+    function getSearchLimits(config) {
+      const finiteCapacity = config.planStages.reduce((total, stage) => {
+        return total + stage.enemies.reduce((stageTotal, enemy) => {
+          if (enemy.unlimited) {
+            return stageTotal;
+          }
+          return stageTotal + enemy.quantity;
+        }, 0);
+      }, 0);
+      const levelSpan = config.targetLevel - config.currentLevel;
+      const maxStageCapacity = config.planStages.reduce((max, stage) => {
+        const stageCapacity = stage.enemies.reduce((total, enemy) => total + (enemy.unlimited ? 0 : enemy.quantity), 0);
+        return Math.max(max, stageCapacity);
+      }, 0);
+      const denseFiniteStage = maxStageCapacity >= 14 && levelSpan >= 5;
+      const hugeSearch = levelSpan >= 30 || finiteCapacity > 180 || config.planStages.length > 16;
+      const largeSearch = hugeSearch || denseFiniteStage || levelSpan >= 12 || finiteCapacity > 120 || config.planStages.length > 8;
+      if (hugeSearch) {
+        return { activeBudget: 1600, finalBudget: 240, pruneInterval: 250, yieldInterval: 80, maxExplored: 90000, approximate: true };
+      }
+      if (largeSearch) {
+        return { activeBudget: 3200, finalBudget: 500, pruneInterval: 500, yieldInterval: 150, maxExplored: 160000, approximate: true };
+      }
+      return { activeBudget: 60000, finalBudget: 3000, pruneInterval: 2500, yieldInterval: 1000, maxExplored: Infinity, approximate: false };
+    }
+
+    function estimateReachableCeiling(config) {
+      let optimisticGain = 0;
+      for (const stage of config.planStages) {
+        for (const enemy of stage.enemies) {
+          const maxGain = computeEnemyMaxGain(enemy, config);
+          if (enemy.unlimited && maxGain > 0) {
+            return null;
+          }
+          if (!enemy.unlimited) {
+            optimisticGain += maxGain * enemy.quantity;
+          }
+        }
+      }
+      return advanceLevelProgress(config.currentLevel, config.currentProgress + optimisticGain, config.levelNeedMap);
+    }
+
+    function computeEnemyMaxGain(enemy, config) {
+      let maxGain = 0;
+      for (let level = config.currentLevel; level <= config.targetLevel; level += 1) {
+        const gainInfo = computeGain(enemy, level, config.coefficientRules, config.roundMode);
+        if (gainInfo && gainInfo.gain > maxGain) {
+          maxGain = gainInfo.gain;
+        }
+      }
+      return maxGain;
+    }
+
+    function advanceLevelProgress(level, progress, levelNeedMap) {
+      let nextLevel = level;
+      let nextProgress = progress;
+      while (levelNeedMap.has(nextLevel) && nextProgress >= levelNeedMap.get(nextLevel)) {
+        nextProgress -= levelNeedMap.get(nextLevel);
+        nextLevel += 1;
+      }
+      return { level: nextLevel, progress: nextProgress };
+    }
+
+    async function solveRoutes(config, options = {}) {
+      const warnings = new Set(config.planningWarnings || []);
+      const ceiling = estimateReachableCeiling(config);
+      if (ceiling && ceiling.level < config.targetLevel) {
+        warnings.add(`当前关卡范围经验不足：按乐观估算最高约到 ${ceiling.level} 级，无法到达目标 ${config.targetLevel} 级。`);
+        return {
+          routes: [],
+          fallbackRoutes: [],
+          displayRoutes: [],
+          usedFallback: false,
+          exploredStates: 0,
+          warnings: [...warnings],
+          totalFinalStates: 0,
+          searchTruncated: false
+        };
+      }
+
+      const preparedStages = prepareSearchStages(config.planStages);
+      const initialState = {
+        stageIndex: 0,
+        level: config.currentLevel,
+        progress: config.currentProgress,
+        counts: preparedStages[0].finiteCounts.slice(),
+        countsKey: preparedStages[0].emptyCountsKey,
+        kills: 0,
+        strategyScore: 0,
+        pathKey: "",
+        parent: null,
+        step: null
+      };
+
+      const queue = [initialState];
+      const bestState = new Map();
+      bestState.set(makeStateKey(initialState), { kills: 0, strategyScore: 0, pathKey: "" });
+      const finalRoutes = [];
+      const finalRouteKeys = new Map();
+      const limits = getSearchLimits(config);
+      let pointer = 0;
+      let exploredStates = 0;
+      let searchTruncated = false;
+      let totalFinalHits = 0;
+
+      while (pointer < queue.length) {
+        const state = queue[pointer];
+        pointer += 1;
+        exploredStates += 1;
+
+        const stopAtTarget = shouldStopExpandingAtTarget(state, config);
+        if (state.level === config.targetLevel) {
+          totalFinalHits += 1;
+          addFinalCandidate(state, finalRoutes, finalRouteKeys, config, limits.finalBudget);
+        }
+
+        if (stopAtTarget) {
+          continue;
+        }
+
+        if (state.stageIndex < preparedStages.length - 1) {
+          const nextState = createStageTransitionState(state, state.stageIndex + 1, preparedStages[state.stageIndex + 1]);
+          enqueueState(nextState, queue, bestState);
+        }
+
+        const stage = preparedStages[state.stageIndex];
+
+        for (const enemy of stage.enemies) {
+          if (enemy.finiteIndex !== -1 && state.counts[enemy.finiteIndex] <= 0) {
+            continue;
+          }
+
+          const gainInfo = computeCachedGain(enemy, state.level, config.coefficientRules, config.roundMode);
+          if (!gainInfo) {
+            warnings.add(`等级差 ${enemy.enemyLevel - state.level} 未定义，相关路线已跳过。`);
+            continue;
+          }
+          if (gainInfo.gain <= 0) {
+            warnings.add(`${stage.name} / ${enemy.name} 击杀经验为 0，已跳过。`);
+            continue;
+          }
+
+          let nextLevel = state.level;
+          let nextProgress = state.progress + gainInfo.gain;
+          const levelUps = [];
+
+          while (config.levelNeedMap.has(nextLevel) && nextProgress >= config.levelNeedMap.get(nextLevel)) {
+            nextProgress -= config.levelNeedMap.get(nextLevel);
+            nextLevel += 1;
+            levelUps.push(nextLevel);
+          }
+
+          if (nextLevel > config.targetLevel) {
+            continue;
+          }
+
+          const strategy = evaluateStrategyStep({
+            enemy,
+            state,
+            gainInfo,
+            nextLevel,
+            nextProgress,
+            levelUps,
+            config
+          });
+          const nextCounts = state.counts.slice();
+          let nextCountsKey = state.countsKey;
+          if (enemy.finiteIndex !== -1) {
+            nextCounts[enemy.finiteIndex] -= 1;
+            nextCountsKey = nextCounts.join(",");
+          }
+
+          const nextStep = {
+            stageId: stage.id,
+            enemyId: enemy.id,
+            reservationKey: enemy.reservationKey,
+            enemyIndex: enemy.enemyIndex,
+            stageName: stage.name,
+            enemyName: enemy.name,
+            baseExp: enemy.baseExp,
+            enemyLevel: enemy.enemyLevel,
+            unlimited: enemy.unlimited,
+            beforeLevel: state.level,
+            beforeProgress: state.progress,
+            gain: gainInfo.gain,
+            afterLevel: nextLevel,
+            afterProgress: nextProgress,
+            diff: gainInfo.diff,
+            coefficient: gainInfo.coefficient,
+            levelUps,
+            strategyScore: strategy.score,
+            strategyNote: strategy.note,
+            routeLabel: enemy.routeLabel
+          };
+
+          const nextPathKey = state.pathKey ? `${state.pathKey}|${enemy.sortToken}` : enemy.sortToken;
+          const nextState = {
+            stageIndex: state.stageIndex,
+            level: nextLevel,
+            progress: nextProgress,
+            counts: nextCounts,
+            countsKey: nextCountsKey,
+            kills: state.kills + 1,
+            strategyScore: state.strategyScore + strategy.score,
+            pathKey: nextPathKey,
+            parent: state,
+            step: nextStep
+          };
+          enqueueState(nextState, queue, bestState);
+        }
+
+        if (pointer % limits.pruneInterval === 0 && queue.length - pointer > limits.activeBudget) {
+          const activeStates = selectPromisingStates(queue.slice(pointer), config, limits.activeBudget);
+          queue.length = 0;
+          queue.push(...activeStates);
+          pointer = 0;
+          rebuildBestState(bestState, queue);
+          searchTruncated = true;
+        }
+
+        if (exploredStates % limits.yieldInterval === 0) {
+          if (options.shouldContinue && !options.shouldContinue()) {
+            throw new Error("计算已被新的请求取消。");
+          }
+          await yieldToBrowser();
+        }
+
+        if (exploredStates >= limits.maxExplored) {
+          warnings.add(`搜索状态超过 ${limits.maxExplored} 个，已提前停止并保留当前最优候选。`);
+          searchTruncated = true;
+          break;
+        }
+      }
+
+      pruneFinalCandidates(finalRoutes, finalRouteKeys, config, limits.finalBudget);
+
+      if (searchTruncated || limits.approximate) {
+        warnings.add("搜索空间过大，已启用限宽搜索；结果会优先保留最有希望的候选路线，但不保证枚举了所有可能。");
+      }
+
+      const allFinalRoutes = finalRoutes
+        .sort((a, b) => compareFinalRoute(a, b, config));
+
+      const matchedRoutes = allFinalRoutes
+        .filter((route) => {
+          if (config.objectiveMode === "range") {
+            return route.remainingToNext >= config.minRemaining && route.remainingToNext <= config.maxRemaining;
+          }
+          return true;
+        })
+        .slice(0, config.maxRoutes);
+
+      const fallbackRoutes = config.objectiveMode === "range" && matchedRoutes.length === 0
+        ? allFinalRoutes
+            .slice()
+            .sort((a, b) => compareFinalRoute(a, b, config))
+            .slice(0, config.maxRoutes)
+        : [];
+
+      return {
+        routes: matchedRoutes,
+        fallbackRoutes,
+        displayRoutes: matchedRoutes.length > 0 ? matchedRoutes : fallbackRoutes,
+        usedFallback: matchedRoutes.length === 0 && fallbackRoutes.length > 0,
+        exploredStates,
+        warnings: [...warnings],
+        totalFinalStates: totalFinalHits,
+        searchTruncated
+      };
+    }
+
+    function yieldToBrowser() {
+      const timer = typeof window !== "undefined" ? window.setTimeout : setTimeout;
+      return new Promise((resolve) => timer(resolve, 0));
+    }
+
+    function prepareSearchStages(stages) {
+      return stages.map((stage, stageIndex) => {
+        let finiteIndex = 0;
+        const enemies = stage.enemies.map((enemy, enemyIndex) => {
+          const compiledEnemy = {
+            ...enemy,
+            finiteIndex: enemy.unlimited ? -1 : finiteIndex,
+            gainCache: new Map(),
+            routeLabel: `${stage.name}:${enemy.name}(Lv${enemy.enemyLevel})`,
+            sortToken: `${String(stageIndex).padStart(2, "0")}-${String(enemyIndex).padStart(2, "0")}`
+          };
+          if (!enemy.unlimited) {
+            finiteIndex += 1;
+          }
+          return compiledEnemy;
+        });
+        const finiteCounts = enemies
+          .filter((enemy) => enemy.finiteIndex !== -1)
+          .map((enemy) => enemy.quantity);
+        return {
+          ...stage,
+          enemies,
+          finiteCounts,
+          emptyCountsKey: finiteCounts.join(",")
+        };
+      });
+    }
+
+    function createStageTransitionState(state, nextStageIndex, nextStage) {
+      return {
+        stageIndex: nextStageIndex,
+        level: state.level,
+        progress: state.progress,
+        counts: nextStage.finiteCounts.slice(),
+        countsKey: nextStage.emptyCountsKey,
+        kills: state.kills,
+        strategyScore: state.strategyScore,
+        pathKey: state.pathKey,
+        parent: state.parent,
+        step: state.step
+      };
+    }
+
+    function computeCachedGain(enemy, currentLevel, rules, roundMode) {
+      if (enemy.gainCache.has(currentLevel)) {
+        return enemy.gainCache.get(currentLevel);
+      }
+      const gainInfo = computeGain(enemy, currentLevel, rules, roundMode);
+      enemy.gainCache.set(currentLevel, gainInfo);
+      return gainInfo;
+    }
+
+    function shouldStopExpandingAtTarget(state, config) {
+      if (state.level !== config.targetLevel) {
+        return false;
+      }
+      if (
+        config.objectiveMode === "closest" &&
+        config.strategyMode === "strategic" &&
+        state.step?.strategyNote?.includes("跳段")
+      ) {
+        return true;
+      }
+      const levelNeed = config.levelNeedMap.get(config.targetLevel);
+      const remainingToNext = levelNeed - state.progress;
+      if (config.objectiveMode === "range") {
+        return remainingToNext <= config.maxRemaining;
+      }
+      return remainingToNext <= 1;
+    }
+
+    function evaluateStrategyStep({ enemy, state, gainInfo, nextLevel, nextProgress, levelUps, config }) {
+      if (config.strategyMode !== "strategic") {
+        return { score: 0, note: "" };
+      }
+      const currentNeed = config.levelNeedMap.get(state.level) || 1;
+      const nextNeed = config.levelNeedMap.get(nextLevel) || config.levelNeedMap.get(config.targetLevel) || 1;
+      const beforeRemaining = Math.max(0, currentNeed - state.progress);
+      const afterRemaining = Math.max(0, nextNeed - nextProgress);
+      const nearUpgrade = beforeRemaining <= getNearUpgradeThreshold(currentNeed);
+      const highValue = isHighValueEnemy(enemy, gainInfo, config);
+      const lowSpan = gainInfo.diff <= 4;
+      const notes = [];
+      let score = 0;
+
+      if (highValue && gainInfo.diff >= 8) {
+        if (gainInfo.diff === 8 && nearUpgrade) {
+          score -= 420;
+          notes.push("差8窗口");
+        } else if (gainInfo.diff > 8 && !isLateJumpStep(state.level, nextLevel)) {
+          score += Math.min(900, (gainInfo.diff - 8) * 140);
+          notes.push("可再垫级");
+        }
+      }
+
+      if (lowSpan && !highValue) {
+        if (levelUps.length > 0) {
+          score += 320;
+          notes.push("低跨度触发升级");
+        } else {
+          score -= afterRemaining <= getNearUpgradeThreshold(nextNeed) ? 180 : 80;
+          notes.push("垫经验");
+        }
+      }
+
+      if (isLateJumpStep(state.level, nextLevel)) {
+        const jumpReward = nextLevel >= 50 ? 1800 : nextLevel >= 49 ? 1500 : 1200;
+        score -= jumpReward;
+        notes.push(`${state.level}→${nextLevel}跳段`);
+      } else if (state.level >= 37 && levelUps.length >= 4) {
+        score -= 700;
+        notes.push("后期连升");
+      }
+
+      return { score, note: notes.join("、") };
+    }
+
+    function getNearUpgradeThreshold(levelNeed) {
+      return Math.max(120, Math.round(levelNeed * 0.15));
+    }
+
+    function isHighValueEnemy(enemy, gainInfo, config) {
+      const targetNeed = config.levelNeedMap.get(config.targetLevel) || 1000;
+      return enemy.baseExp >= 180 || enemy.enemyLevel >= 41 || gainInfo.gain >= targetNeed * 2;
+    }
+
+    function isLateJumpStep(beforeLevel, afterLevel) {
+      return beforeLevel >= 37 && afterLevel >= 48 && afterLevel - beforeLevel >= 5;
+    }
+
+    function enqueueState(state, queue, bestState) {
+      const stateKey = makeStateKey(state);
+      const candidateMeta = { kills: state.kills, strategyScore: state.strategyScore, pathKey: state.pathKey };
+      const existingMeta = bestState.get(stateKey);
+      if (!existingMeta || compareStateMeta(candidateMeta, existingMeta) < 0) {
+        bestState.set(stateKey, candidateMeta);
+        queue.push(state);
+      }
+    }
+
+    function addFinalCandidate(state, finalRoutes, finalRouteKeys, config, limit) {
+      const levelNeed = config.levelNeedMap.get(config.targetLevel);
+      const candidate = {
+        state,
+        stageIndex: state.stageIndex,
+        level: state.level,
+        progress: state.progress,
+        kills: state.kills,
+        strategyScore: state.strategyScore,
+        pathKey: state.pathKey,
+        remainingToNext: levelNeed - state.progress
+      };
+      const key = `${candidate.pathKey}|${candidate.level}|${candidate.progress}`;
+      const existing = finalRouteKeys.get(key);
+      if (existing && existing.stageIndex >= candidate.stageIndex) {
+        return;
+      }
+      finalRouteKeys.set(key, candidate);
+      finalRoutes.push(candidate);
+      if (finalRoutes.length > limit * 3) {
+        pruneFinalCandidates(finalRoutes, finalRouteKeys, config, limit);
+      }
+    }
+
+    function pruneFinalCandidates(finalRoutes, finalRouteKeys, config, limit) {
+      const activeCandidates = finalRoutes.filter((route) => {
+        const key = `${route.pathKey}|${route.level}|${route.progress}`;
+        return finalRouteKeys.get(key) === route;
+      });
+      const rankedRoutes = activeCandidates
+        .sort((a, b) => compareFinalRoute(a, b, config))
+        .slice(0, limit)
+        .map((candidate) => materializeRoute(candidate));
+      finalRoutes.length = 0;
+      finalRoutes.push(...rankedRoutes);
+      finalRouteKeys.clear();
+      finalRoutes.forEach((route) => {
+        finalRouteKeys.set(`${route.pathKey}|${route.level}|${route.progress}`, route);
+      });
+    }
+
+    function materializeRoute(candidate) {
+      if (candidate.path && candidate.steps) {
+        return candidate;
+      }
+      const steps = [];
+      let cursor = candidate.state;
+      while (cursor && cursor.step) {
+        steps.push(cursor.step);
+        cursor = cursor.parent;
+      }
+      steps.reverse();
+      return {
+        stageIndex: candidate.stageIndex,
+        level: candidate.level,
+        progress: candidate.progress,
+        kills: candidate.kills,
+        strategyScore: candidate.strategyScore || 0,
+        pathKey: candidate.pathKey,
+        remainingToNext: candidate.remainingToNext,
+        path: steps.map((step) => step.routeLabel),
+        steps
+      };
+    }
+
+    function selectPromisingStates(states, config, limit) {
+      const dedupedStates = new Map();
+      states.forEach((state) => {
+        const stateKey = makeStateKey(state);
+        const existingState = dedupedStates.get(stateKey);
+        if (!existingState || compareStateMeta(
+          { kills: state.kills, strategyScore: state.strategyScore, pathKey: state.pathKey },
+          { kills: existingState.kills, strategyScore: existingState.strategyScore, pathKey: existingState.pathKey }
+        ) < 0) {
+          dedupedStates.set(stateKey, state);
+        }
+      });
+
+      return [...dedupedStates.values()]
+        .sort((a, b) => compareSearchState(a, b, config))
+        .slice(0, limit);
+    }
+
+    function rebuildBestState(bestState, queue) {
+      bestState.clear();
+      queue.forEach((state) => {
+        const stateKey = makeStateKey(state);
+        const candidateMeta = { kills: state.kills, strategyScore: state.strategyScore, pathKey: state.pathKey };
+        const existingMeta = bestState.get(stateKey);
+        if (!existingMeta || compareStateMeta(candidateMeta, existingMeta) < 0) {
+          bestState.set(stateKey, candidateMeta);
+        }
+      });
+    }
+
+    function compareSearchState(left, right, config) {
+      const leftScore = scoreSearchState(left, config);
+      const rightScore = scoreSearchState(right, config);
+      if (leftScore !== rightScore) {
+        return leftScore - rightScore;
+      }
+      return compareStateMeta(
+        { kills: left.kills, strategyScore: left.strategyScore, pathKey: left.pathKey },
+        { kills: right.kills, strategyScore: right.strategyScore, pathKey: right.pathKey }
+      );
+    }
+
+    function scoreSearchState(state, config) {
+      const need = config.levelNeedMap.get(state.level) || config.levelNeedMap.get(config.targetLevel) || 1;
+      const levelGap = Math.max(0, config.targetLevel - state.level);
+      const remainingInLevel = Math.max(0, need - state.progress);
+      const targetDistance = state.level === config.targetLevel
+        ? scoreTargetState(state.kills, need - state.progress, config)
+        : 0;
+      return levelGap * 1000000
+        + remainingInLevel * 50
+        + targetDistance * 20
+        + getStrategyScore(state, config)
+        + state.stageIndex * 25
+        + state.kills;
+    }
+
+    function compareFinalRoute(left, right, config) {
+      if (config.objectiveMode === "closest") {
+        return compareClosestRoute(left, right, config);
+      }
+      const leftScore = compareRemainingScore(left.remainingToNext, config);
+      const rightScore = compareRemainingScore(right.remainingToNext, config);
+      if (leftScore !== rightScore) {
+        return leftScore - rightScore;
+      }
+      if (config.objectiveMode === "range" && leftScore === 0) {
+        if (left.kills !== right.kills) {
+          return left.kills - right.kills;
+        }
+        const strategyDiff = compareStrategyScore(left, right, config);
+        if (strategyDiff !== 0) {
+          return strategyDiff;
+        }
+        if (left.remainingToNext !== right.remainingToNext) {
+          return left.remainingToNext - right.remainingToNext;
+        }
+        return left.pathKey.localeCompare(right.pathKey, "zh-CN");
+      }
+      if (left.remainingToNext !== right.remainingToNext) {
+        return left.remainingToNext - right.remainingToNext;
+      }
+      const strategyDiff = compareStrategyScore(left, right, config);
+      if (strategyDiff !== 0) {
+        return strategyDiff;
+      }
+      if (left.kills !== right.kills) {
+        return left.kills - right.kills;
+      }
+      return left.pathKey.localeCompare(right.pathKey, "zh-CN");
+    }
+
+    function compareClosestRoute(left, right, config) {
+      const priority = config.routePriority || "efficient";
+      if (priority === "efficient") {
+        if (left.kills !== right.kills) {
+          return left.kills - right.kills;
+        }
+        const strategyDiff = compareStrategyScore(left, right, config);
+        if (strategyDiff !== 0) {
+          return strategyDiff;
+        }
+        if (left.remainingToNext !== right.remainingToNext) {
+          return left.remainingToNext - right.remainingToNext;
+        }
+        return left.pathKey.localeCompare(right.pathKey, "zh-CN");
+      }
+      if (priority === "balanced") {
+        const leftScore = scoreBalancedRoute(left.kills, left.remainingToNext, config) + getStrategyScore(left, config);
+        const rightScore = scoreBalancedRoute(right.kills, right.remainingToNext, config) + getStrategyScore(right, config);
+        if (leftScore !== rightScore) {
+          return leftScore - rightScore;
+        }
+      }
+      if (left.remainingToNext !== right.remainingToNext) {
+        return left.remainingToNext - right.remainingToNext;
+      }
+      const strategyDiff = compareStrategyScore(left, right, config);
+      if (strategyDiff !== 0) {
+        return strategyDiff;
+      }
+      if (left.kills !== right.kills) {
+        return left.kills - right.kills;
+      }
+      return left.pathKey.localeCompare(right.pathKey, "zh-CN");
+    }
+
+    function scoreTargetState(kills, remainingToNext, config) {
+      if (config.objectiveMode === "range") {
+        return compareRemainingScore(remainingToNext, config) * 10000 + kills;
+      }
+      if (config.routePriority === "efficient") {
+        return kills * 10000 + remainingToNext;
+      }
+      if (config.routePriority === "balanced") {
+        return scoreBalancedRoute(kills, remainingToNext, config);
+      }
+      return remainingToNext * 10000 + kills;
+    }
+
+    function scoreBalancedRoute(kills, remainingToNext, config) {
+      return remainingToNext + kills * getExtraKillPenalty(config);
+    }
+
+    function getExtraKillPenalty(config) {
+      const targetNeed = config.levelNeedMap.get(config.targetLevel) || 1000;
+      return Math.max(20, Math.round(targetNeed * 0.05));
+    }
+
+    function compareStrategyScore(left, right, config) {
+      return getStrategyScore(left, config) - getStrategyScore(right, config);
+    }
+
+    function getStrategyScore(route, config) {
+      if (config.strategyMode !== "strategic") {
+        return 0;
+      }
+      return route.strategyScore || 0;
+    }
+
+    function compareRemainingScore(remainingToNext, config) {
+      if (config.objectiveMode === "range") {
+        return distanceToRange(remainingToNext, config.minRemaining, config.maxRemaining);
+      }
+      return remainingToNext;
+    }
+
+    function makeStateKey(state) {
+      return `${state.stageIndex}|${state.level}|${state.progress}|${state.countsKey}`;
+    }
+
+    function compareStateMeta(left, right) {
+      if (left.kills !== right.kills) {
+        return left.kills - right.kills;
+      }
+      const leftStrategy = left.strategyScore || 0;
+      const rightStrategy = right.strategyScore || 0;
+      if (leftStrategy !== rightStrategy) {
+        return leftStrategy - rightStrategy;
+      }
+      return left.pathKey.localeCompare(right.pathKey, "zh-CN");
+    }
+
+    function distanceToRange(value, min, max) {
+      if (value < min) {
+        return min - value;
+      }
+      if (value > max) {
+        return value - max;
+      }
+      return 0;
+    }
+
+    function renderResult(result, config) {
+      lastSolverContext = { result, config };
+      refs.resultList.innerHTML = "";
+      refs.summaryBox.innerHTML = "";
+      refs.summaryBox.classList.toggle("hidden", result.displayRoutes.length === 0);
+
+      const warningHtml = result.warnings.length
+        ? `<div class="tiny-note">${escapeHtml(result.warnings.join(" "))}</div>`
+        : "";
+      const reservationText = config.reservedKills > 0
+        ? ` 已扣除其他机体锁定路线占用的 ${config.reservedKills} 个有限敌机。`
+        : "";
+
+      if (result.displayRoutes.length === 0) {
+        const stageRangeText = formatStageRange(config);
+        const rangeHint = config.objectiveMode === "range"
+          ? `按 ${stageRangeText} 的顺序计算后，没有路线能停在 ${config.targetLevel} 级，且离 ${config.targetLevel + 1} 级还差 ${config.minRemaining} 到 ${config.maxRemaining} 经验。`
+          : `按 ${stageRangeText} 的顺序计算后，没有路线能停在 ${config.targetLevel} 级。`;
+        setStatus(`${rangeHint}${reservationText}${warningHtml ? " 已附带规则警告。" : ""}`, "error");
+        refs.statusBox.insertAdjacentHTML("beforeend", warningHtml);
+        return;
+      }
+
+      const best = result.displayRoutes[0];
+      const stageRangeText = formatStageRange(config);
+      if (result.usedFallback) {
+        setStatus(
+          `区间内无解。已按 ${stageRangeText} 的顺序探索 ${result.exploredStates} 个状态，下面展示最接近 ${config.minRemaining} 到 ${config.maxRemaining} 区间的 ${result.displayRoutes.length} 条路线；其中最近的一条是 ${formatRoutePath(best, { compact: true })}，最终还差 ${best.remainingToNext} 经验升级。${reservationText}`,
+          "error"
+        );
+      } else {
+        setStatus(
+          `已按 ${stageRangeText} 的顺序探索 ${result.exploredStates} 个状态，找到 ${result.routes.length} 条候选路线。当前最优解为 ${formatRoutePath(best, { compact: true })}，最终 ${config.targetLevel} 级还差 ${best.remainingToNext} 经验升级。${reservationText}`,
+          "success"
+        );
+      }
+      if (warningHtml) {
+        refs.statusBox.insertAdjacentHTML("beforeend", warningHtml);
+      }
+
+      renderSummary(best, result, config);
+      refs.resultList.innerHTML = result.displayRoutes
+        .map((route, index) => buildRouteCard(route, index, config))
+        .join("");
+
+      refs.resultList.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const text = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(text);
+            button.textContent = "已复制";
+            window.setTimeout(() => {
+              button.textContent = "复制路线";
+            }, 1200);
+          } catch (error) {
+            button.textContent = "复制失败";
+            window.setTimeout(() => {
+              button.textContent = "复制路线";
+            }, 1200);
+          }
+        });
+      });
+    }
+
+    function renderSummary(best, result, config) {
+      const finalNeed = best.progress + best.remainingToNext;
+      const cards = [
+        createSummaryCard("最优路线", formatRoutePath(best, { compact: true })),
+        createSummaryCard("最终状态", `${best.level} 级 · ${best.progress}/${finalNeed}`),
+        createSummaryCard("离下一级还差", `${best.remainingToNext}`),
+        createSummaryCard("候选路线数", `${result.displayRoutes.length}`)
+      ];
+      if (config.strategyMode === "strategic") {
+        cards.push(createSummaryCard("策略评分", `${Math.round(best.strategyScore || 0)}（越低越符合策略）`));
+      }
+      refs.summaryBox.innerHTML = cards.join("");
+    }
+
+    function createSummaryCard(label, value) {
+      return `
+        <div class="summary-card">
+          <div class="summary-label">${escapeHtml(label)}</div>
+          <div class="summary-value">${escapeHtml(value)}</div>
+        </div>
+      `;
+    }
+
+    function buildRouteCard(route, index, config) {
+      const targetNeed = config.levelNeedMap.get(config.targetLevel);
+      const rows = route.steps.map((step, stepIndex) => {
+        const afterNeed = config.levelNeedMap.get(step.afterLevel) || "?";
+        const afterRemaining = afterNeed === "?" ? "?" : afterNeed - step.afterProgress;
+        const levelUpsText = step.levelUps.length ? step.levelUps.join("、") : "-";
+        const strategyText = config.strategyMode === "strategic" && step.strategyNote
+          ? `${step.strategyNote}（${Math.round(step.strategyScore)}）`
+          : "-";
+        return `
+          <tr>
+            <td>${stepIndex + 1}</td>
+            <td>${escapeHtml(step.stageName)}</td>
+            <td>${escapeHtml(`${step.enemyName}（Lv${step.enemyLevel}）`)}</td>
+            <td>${step.beforeLevel} 级 · ${step.beforeProgress}/${config.levelNeedMap.get(step.beforeLevel)}</td>
+            <td>${step.gain}</td>
+            <td>${step.diff}</td>
+            <td>${step.coefficient}</td>
+            <td>${levelUpsText}</td>
+            <td>${step.afterLevel} 级 · ${step.afterProgress}/${afterNeed}</td>
+            <td>${afterRemaining}</td>
+            <td>${escapeHtml(strategyText)}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const copyText = [
+        `路线 ${formatRoutePath(route)}`,
+        ...route.steps.map((step, stepIndex) => {
+          const afterNeed = config.levelNeedMap.get(step.afterLevel);
+          const strategyText = config.strategyMode === "strategic" && step.strategyNote ? `，策略：${step.strategyNote}` : "";
+          return `${stepIndex + 1}. ${step.stageName} / ${step.enemyName}（Lv${step.enemyLevel}）：${step.beforeLevel}级 ${step.beforeProgress}/${config.levelNeedMap.get(step.beforeLevel)} +${step.gain} -> ${step.afterLevel}级 ${step.afterProgress}/${afterNeed}，还差 ${afterNeed - step.afterProgress}${strategyText}`;
+        }),
+        `最终：${route.level}级 ${route.progress}/${targetNeed}，还差 ${route.remainingToNext}${config.strategyMode === "strategic" ? `，策略评分 ${Math.round(route.strategyScore || 0)}` : ""}`
+      ].join("\n");
+
+      return `
+        <article class="route-card ${index === 0 ? "best" : ""}">
+          <div class="route-header">
+            <div>
+              <div class="route-rank">${index === 0 ? "Best Route" : `Candidate ${index + 1}`}</div>
+              <div class="route-seq">${escapeHtml(formatRoutePath(route, { compact: true }))}</div>
+            </div>
+            <div class="route-metrics">
+              <span class="metric-chip">${route.kills} 杀</span>
+              <span class="metric-chip">${route.level} 级</span>
+              <span class="metric-chip">差 ${route.remainingToNext}</span>
+              ${config.strategyMode === "strategic" ? `<span class="metric-chip">策略 ${Math.round(route.strategyScore || 0)}</span>` : ""}
+              ${index === 0 ? '<span class="badge">最优</span>' : ""}
+            </div>
+          </div>
+          <div class="route-body">
+            <table>
+              <thead>
+                <tr>
+                  <th>步</th>
+                  <th>关卡</th>
+                  <th>击杀</th>
+                  <th>击杀前</th>
+                  <th>获得经验</th>
+                  <th>等级差</th>
+                  <th>系数/固定</th>
+                  <th>升级到</th>
+                  <th>击杀后</th>
+                  <th>剩余</th>
+                  <th>策略</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <div class="route-copy">
+              <button class="warn mini-button" type="button" data-lock-route="${index}">锁定给当前机体</button>
+              <button class="secondary mini-button" type="button" data-copy="${escapeAttribute(copyText)}">复制路线</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function formatRoutePath(route, options = {}) {
+      if (!route.path.length) {
+        return "无需击杀";
+      }
+      if (!options.compact || route.path.length <= 8) {
+        return route.path.join(" -> ");
+      }
+      const head = route.path.slice(0, 3).join(" -> ");
+      const tail = route.path.slice(-2).join(" -> ");
+      return `${head} -> …… -> ${tail}（共 ${route.path.length} 杀）`;
+    }
+
+    function formatStageRange(config) {
+      if (config.planStages.length === 1) {
+        return `“${config.planStages[0].name}”`;
+      }
+      return `“${config.planStages[0].name}”到“${config.planStages[config.planStages.length - 1].name}”`;
+    }
+
+    function setStatus(message, type = "") {
+      refs.statusBox.className = `status ${type}`.trim();
+      refs.statusBox.innerHTML = escapeHtml(message);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replaceAll("\n", "&#10;");
+    }
+  </script>
+</body>
+</html>

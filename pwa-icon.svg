@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="机战经验规划">
+  <defs>
+    <linearGradient id="bg" x1="72" y1="52" x2="438" y2="462" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#123a62"/>
+      <stop offset="0.54" stop-color="#08111e"/>
+      <stop offset="1" stop-color="#201300"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="132" y1="142" x2="380" y2="382" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="1" stop-color="#ffd27b"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M84 126h344M84 386h344M126 84v344M386 84v344" stroke="#7ad3ff" stroke-width="8" opacity="0.18"/>
+  <path d="M256 90l142 82v164l-142 82-142-82V172z" fill="#0b1829" stroke="#7ad3ff" stroke-width="14"/>
+  <path d="M256 132l104 60v120l-104 60-104-60V192z" fill="url(#gold)" filter="url(#glow)"/>
+  <path d="M210 207h92l-36 42h50l-92 78 28-60h-56z" fill="#08111e"/>
+  <text x="256" y="452" text-anchor="middle" font-family="Avenir Next Condensed, Trebuchet MS, sans-serif" font-size="54" font-weight="800" fill="#ffe08a" letter-spacing="6">EXP</text>
+</svg>

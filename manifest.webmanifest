@@ -1,0 +1,19 @@
+{
+  "name": "FC 第二次机器人大战经验路线规划器",
+  "short_name": "机战经验规划",
+  "description": "按关卡、敌机、等级差和锁定路线规划 FC 第二次机器人大战升级路线。",
+  "start_url": "./fc_robot_wars_exp_planner.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08111e",
+  "theme_color": "#08111e",
+  "icons": [
+    {
+      "src": "./pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
